@@ -1,0 +1,91 @@
+homeassistant:
+  # Name of the location where Home Assistant is running
+  name: Home
+  # Location required to calculate the time the sun rises and sets
+  latitude: 37.3537
+  longitude: -122.0307
+  # Impacts weather/sunrise data (altitude above sea level in meters)
+  elevation: 48
+  # metric for Metric, imperial for Imperial
+  unit_system: imperial
+  # Pick yours from here: http://en.wikipedia.org/wiki/List_of_tz_database_time_zones
+  time_zone: America/Los_Angeles
+
+# Show links to resources in log and frontend
+introduction:
+
+# Enables the frontend
+frontend:
+
+# Enables configuration UI
+config:
+
+switch:
+  -  platform: orvibo
+     switches:
+       -  host: 192.168.1.198
+          name: "Living Room tank"
+       -  host: 192.168.1.204
+          name: "Protein skimmer"
+
+
+http:
+  # Uncomment this to add a password (recommended!)
+  # api_password: PASSWORD
+  # Uncomment this if you are using SSL or running in Docker etc
+  # base_url: example.duckdns.org:8123
+
+# Checks for available updates
+updater:
+
+# Discover some devices automatically
+discovery:
+
+# Allows you to issue voice commands from the frontend in enabled browsers
+conversation:
+
+# Enables support for tracking state changes over time.
+history:
+
+# View all events in a logbook
+logbook:
+
+# Track the sun
+sun:
+
+# Weather Prediction
+sensor:
+  platform: yr
+
+# Text to speech
+tts:
+  platform: google
+
+group: !include groups.yaml
+
+device_tracker:
+  - platform: asuswrt
+    host: 192.168.1.1
+    username: admin
+    password: *
+    protocol: ssh
+    consider_home: 180
+
+#automation:
+#   trigger: 
+#    platform: sun
+#    event: sunset
+#    offset: '-00:20:00'
+#
+#automation 2:
+#   trigger:
+#     platform: time
+#     minutes: '/5'
+#     seconds: 00
+#   condition:
+#     platform: sun
+#     after: sunset
+#     offset: '-00:20:00'
+#   action:
+#   - service: switch.turnon
+#   entity_id: switch.wemo_living_room_light
