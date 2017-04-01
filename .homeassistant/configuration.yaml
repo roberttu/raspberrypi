@@ -12,19 +12,19 @@ homeassistant:
   time_zone: America/Los_Angeles
 
 # Show links to resources in log and frontend
-introduction:
+#introduction:
 
 # Enables the frontend
 frontend:
 
 # Enables configuration UI
-config:
+#config:
 
 switch:
   -  platform: orvibo
      switches:
        -  host: 192.168.1.198
-          name: "Living Room tank"
+          name: "Fish Tank Pump"
        -  host: 192.168.1.204
           name: "Protein skimmer"
 
@@ -58,8 +58,8 @@ sensor:
   platform: yr
 
 # Text to speech
-tts:
-  platform: google
+#tts:
+#  platform: google
 
 group: !include groups.yaml
 
@@ -67,7 +67,7 @@ device_tracker:
   - platform: asuswrt
     host: 192.168.1.1
     username: admin
-    password: *
+    password: !secret asusrt_password
     protocol: ssh
     consider_home: 180
 
@@ -89,3 +89,90 @@ device_tracker:
 #   action:
 #   - service: switch.turnon
 #   entity_id: switch.wemo_living_room_light
+
+media_player: 
+  - platform: webostv
+    host: 192.168.1.12 
+    mac: C8:08:E9:ED:DD:AF
+    name: lgtv
+    filename: webostv.conf
+
+shell_command:
+   recordtivo: /home/homeassistant/.homeassistant/tivoscript/RECORD
+   tivo5: /home/homeassistant/.homeassistant/tivoscript/NUM5
+   tivoadvance: /home/homeassistant/.homeassistant/tivoscript/ADVANCE
+   tivo1: /home/homeassistant/.homeassistant/tivoscript/NUM1
+   tivo4: /home/homeassistant/.homeassistant/tivoscript/NUM4
+   tivo2: /home/homeassistant/.homeassistant/tivoscript/NUM2
+   tivo3: /home/homeassistant/.homeassistant/tivoscript/NUM3
+   tivo6: /home/homeassistant/.homeassistant/tivoscript/NUM6
+   tivo7: /home/homeassistant/.homeassistant/tivoscript/NUM7
+   tivo8: /home/homeassistant/.homeassistant/tivoscript/NUM8
+   tivo9: /home/homeassistant/.homeassistant/tivoscript/NUM9
+   tivo0: /home/homeassistant/.homeassistant/tivoscript/NUM0
+   tivoenter: /home/homeassistant/.homeassistant/tivoscript/ENTER
+   restart_ha: sudo service hass-demon restart &
+
+script:
+#   home_theater:
+#     sequence:
+#       -  service: switch.turn_on
+#       entity_id: switch.wemo_living_room_light
+#       -  service: switch.turn_off
+#       entity_id: switch.living_room_tank
+#       -  service: media_player/select_source
+#       entity_id: lgtv
+#       source: "set-top box"
+#   abcontv:
+#     sequence:
+#       -  service: media_player.select_source
+#       entity_id: lgtv
+#       source: "livetv"
+#       -  service: media_player.play_media
+#       entity_id: lgtv
+#       media_content_type: "channel"
+   cbsontv:
+     sequence:
+       -  service: media_player.turn_on
+          data:
+             entity_id: lgtv
+       -  service: media_player.select_source
+          data:
+            entity_id: lgtv
+            source: "set_top box"
+       -  service: shell_command.tivo5
+       -  service: shell_command.tivoadvance
+       -  service: shell_command.tivo1
+       -  service: shell_command.tivoenter
+   telemundoontv:
+     sequence:
+       -  service: media_player.turn_on
+          data:
+             entity_id: lgtv
+       -  service: media_player.select_source
+          data:
+            entity_id: lgtv
+            source: "tivo"
+       -  service: shell_command.tivo4
+       -  service: shell_command.tivo8
+       -  service: shell_command.tivoadvance
+       -  service: shell_command.tivo1
+       -  service: shell_command.tivoenter
+   univisionontv:
+     sequence:
+       -  service: media_player.turn_on
+          data:
+             entity_id: lgtv
+       -  service: media_player.select_source
+          data:
+            entity_id: lgtv
+            source: "tivo"
+       -  service: shell_command.tivo1
+       -  service: shell_command.tivo4
+       -  service: shell_command.tivoadvance
+       -  service: shell_command.tivo2
+       -  service: shell_command.tivoenter
+   restart:
+     sequence:
+       -  service: shell_command.restart_ha
+
