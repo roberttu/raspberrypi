@@ -1,7 +1,7 @@
 default_view:
     view: yes
     entities:
-#      - device_tracker.robtu
+      - device_tracker.android8ef561f60af42147
       - group.livingroom
       - group.fishtanks
       - group.bedroom
@@ -27,6 +27,7 @@ misc:
       - script.cbsontv
       - script.telemundoontv
       - script.univisionontv
+      - script.recordscript
 #dev_pi:
 #  name: Pi
 #  entities:

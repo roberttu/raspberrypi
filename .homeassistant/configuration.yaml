@@ -68,7 +68,7 @@ device_tracker:
     host: 192.168.1.1
     username: admin
     password: !secret asusrt_password
-    protocol: ssh
+    protocol: telnet
     consider_home: 180
 
 #automation:
@@ -100,7 +100,16 @@ media_player:
 shell_command:
    recordtivo: /home/homeassistant/.homeassistant/tivoscript/RECORD
    tivo5: /home/homeassistant/.homeassistant/tivoscript/NUM5
+   tivopause: /home/homeassistant/.homeassistant/tivoscript/PAUSE
+   tivoplay: /home/homeassistant/.homeassistant/tivoscript/PLAY
+   tvpause: /home/homeassistant/.homeassistant/githubdownload/pylgtv/pause.py
+   tvplay: /home/homeassistant/.homeassistant/githubdownload/pylgtv/play.py
    tivoadvance: /home/homeassistant/.homeassistant/tivoscript/ADVANCE
+   abctv: /home/homeassistant/.homeassistant/githubdownload/pylgtv/channel.py 1_35_7_1_0_0_0
+   foxtv: /home/homeassistant/.homeassistant/githubdownload/pylgtv/channel.py 1_48_2_1_0_0_0
+   changevolhi: /home/homeassistant/.homeassistant/githubdownload/pylgtv/volume.py 30
+   changevolmed: /home/homeassistant/.homeassistant/githubdownload/pylgtv/volume.py 17
+   changevollo: /home/homeassistant/.homeassistant/githubdownload/pylgtv/volume.py 12
    tivo1: /home/homeassistant/.homeassistant/tivoscript/NUM1
    tivo4: /home/homeassistant/.homeassistant/tivoscript/NUM4
    tivo2: /home/homeassistant/.homeassistant/tivoscript/NUM2
@@ -111,18 +120,25 @@ shell_command:
    tivo9: /home/homeassistant/.homeassistant/tivoscript/NUM9
    tivo0: /home/homeassistant/.homeassistant/tivoscript/NUM0
    tivoenter: /home/homeassistant/.homeassistant/tivoscript/ENTER
-   restart_ha: sudo service hass-demon restart &
+   tivoright: /home/homeassistant/.homeassistant/tivoscript/RIGHT
+   restart_ha: sudo systemctl restart
+   kodi: kodi &
 
 script:
-#   home_theater:
-#     sequence:
-#       -  service: switch.turn_on
-#       entity_id: switch.wemo_living_room_light
+   home_theater:
+     sequence:
+       -  service: switch.turn_off
+          data:
+            entity_id: switch.wemo_living_room_light
 #       -  service: switch.turn_off
 #       entity_id: switch.living_room_tank
-#       -  service: media_player/select_source
-#       entity_id: lgtv
-#       source: "set-top box"
+       -  service: media_player.turn_on
+          data:
+             entity_id: media_player.lgtv
+       -  service: media_player.select_source
+          data:
+            entity_id: media_player.lgtv
+            source: "Home Theater"
 #   abcontv:
 #     sequence:
 #       -  service: media_player.select_source
@@ -135,11 +151,12 @@ script:
      sequence:
        -  service: media_player.turn_on
           data:
-             entity_id: lgtv
+             entity_id: media_player.lgtv
        -  service: media_player.select_source
           data:
-            entity_id: lgtv
-            source: "set_top box"
+            entity_id: media_player.lgtv
+            source: "Set-top Box"
+       -  delay:  00:00:01
        -  service: shell_command.tivo5
        -  service: shell_command.tivoadvance
        -  service: shell_command.tivo1
@@ -148,12 +165,13 @@ script:
      sequence:
        -  service: media_player.turn_on
           data:
-             entity_id: lgtv
+             entity_id: media_player.lgtv
        -  service: media_player.select_source
           data:
-            entity_id: lgtv
-            source: "tivo"
+            entity_id: media_player.lgtv
+            source: "Set-top Box"
        -  service: shell_command.tivo4
+       -  delay:  00:00:01
        -  service: shell_command.tivo8
        -  service: shell_command.tivoadvance
        -  service: shell_command.tivo1
@@ -162,11 +180,12 @@ script:
      sequence:
        -  service: media_player.turn_on
           data:
-             entity_id: lgtv
+             entity_id: media_player.lgtv
        -  service: media_player.select_source
           data:
-            entity_id: lgtv
-            source: "tivo"
+            entity_id: media_player.lgtv
+            source: "Set-top Box"
+       -  delay:  00:00:02
        -  service: shell_command.tivo1
        -  service: shell_command.tivo4
        -  service: shell_command.tivoadvance
@@ -174,5 +193,67 @@ script:
        -  service: shell_command.tivoenter
    restart:
      sequence:
-       -  service: shell_command.restart_ha
+       -  service: homeassistant.restart
+#       -  service: shell_command.restart_ha
+   recordscript:
+     sequence:
+       -  service: shell_command.recordtivo
+       -  delay:  00:00:01
+       -  service: shell_command.tivoright
+   turnoffall:
+     sequence:
+       -  service: switch.turn_off
+          data:
+             entity_id: switch.wemo_living_room_light
+       -  service: media_player.turn_off
+          data:
+             entity_id: media_player.lgtv
+   turnofftv:
+     sequence:
+       -  service: media_player.turn_off
+          data:
+             entity_id: media_player.lgtv
+   turnontv:
+     sequence:
+       -  service: media_player.turn_on
+          data:
+             entity_id: media_player.lgtv
+   pbsontv:
+     sequence:
+       -  service: media_player.turn_on
+          data:
+             entity_id: media_player.lgtv
+       -  service: media_player.select_source
+          data:
+            entity_id: media_player.lgtv
+            source: "Set-top Box"
+       -  service: shell_command.tivo9
+       -  delay:  00:00:01
+       -  service: shell_command.tivoadvance
+       -  service: shell_command.tivo1
+       -  service: shell_command.tivoenter
+   kodiontv:
+     sequence:
+       -  service: media_player.turn_on
+          data:
+             entity_id: media_player.lgtv
+       -  service: media_player.select_source
+          data:
+            entity_id: media_player.lgtv
+            source: "kodi"
+       -  service: shell_command.kodi
+   pauseontv:
+     sequence:
+       -  service: shell_command.tivopause
+#       -  service: shell_command.tvpause
+       -  service: media_player.media_pause
+          data:
+             entity_id: media_player.lgtv
+   playontv:
+     sequence:
+       -  service: shell_command.tivoplay
+#       -  service: shell_command.tvplay
+       -  service: media_player.media_play
+          data:
+             entity_id: media_player.lgtv
 
