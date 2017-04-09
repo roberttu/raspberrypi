@@ -31,7 +31,7 @@ switch:
 
 http:
   # Uncomment this to add a password (recommended!)
-  # api_password: PASSWORD
+  api_password: !secret hass_password
   # Uncomment this if you are using SSL or running in Docker etc
   # base_url: example.duckdns.org:8123
 
@@ -55,7 +55,11 @@ sun:
 
 # Weather Prediction
 sensor:
-  platform: yr
+  - platform: yr
+  - platform: rest
+    resource: http://ip.jsontest.com
+    name: External IP
+    value_template: '{{ value_json.ip }}'
 
 # Text to speech
 #tts:
@@ -71,12 +75,62 @@ device_tracker:
     protocol: telnet
     consider_home: 180
 
-#automation:
-#   trigger: 
-#    platform: sun
-#    event: sunset
-#    offset: '-00:20:00'
-#
+automation:
+ - alias: Light on when home
+   trigger: 
+    platform: sun
+    event: sunset
+    offset: '-00:20:00'
+   condition:
+     condition: and
+     conditions:
+       - condition: state
+         entity_id: 'device_tracker.robtu'
+         state: 'home'
+   action:
+     service: switch.turn_on
+     entity_id: switch.wemo_living_room_light
+automation 2:
+ - alias: Auto turnoff
+   trigger: 
+     platform: time
+     after: "02:30:00"
+   action:
+     -  service: switch.turn_off
+        entity_id: switch.wemo_living_room_light
+     -  service: media_player.turn_off
+        data:
+           entity_id: media_player.lgtv
+automation 3:
+ - alias: late night notify
+   trigger: 
+     platform: time
+     after: "00:30:00"
+   action:
+     -  service: notify.lgtv
+        data:
+           message: "It is 12:30"
+automation 4:
+ - alias: pump reminder
+   trigger: 
+     platform: time
+     minutes: 5
+     seconds: 00
+   condition:
+     condition: and
+     conditions:
+       - condition: state
+         entity_id: 'device_tracker.robtu'
+         state: 'not_home'
+       - condition: state
+         entity_id: 'switch.fish_tank_pump'
+         state: 'off'
+   action:
+     -  service: notify.pushb
+        data:
+           message: "pumps are off"
+    
+
 #automation 2:
 #   trigger:
 #     platform: time
@@ -96,6 +150,14 @@ media_player:
     mac: C8:08:E9:ED:DD:AF
     name: lgtv
     filename: webostv.conf
+notify:
+  - platform: webostv
+    host: 192.168.1.12 
+    name: lgtv
+    filename: webostv.conf
+  - name: pushb 
+    platform: pushbullet
+    api_key: !secret pushapi
 
 shell_command:
    recordtivo: /home/homeassistant/.homeassistant/tivoscript/RECORD
@@ -121,7 +183,7 @@ shell_command:
    tivo0: /home/homeassistant/.homeassistant/tivoscript/NUM0
    tivoenter: /home/homeassistant/.homeassistant/tivoscript/ENTER
    tivoright: /home/homeassistant/.homeassistant/tivoscript/RIGHT
-   restart_ha: sudo systemctl restart
+   restart_ha: systemctl restart home-assistant@homeassistant
    kodi: kodi &
 
 script:

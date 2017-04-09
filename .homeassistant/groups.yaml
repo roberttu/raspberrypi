@@ -28,6 +28,7 @@ misc:
       - script.telemundoontv
       - script.univisionontv
       - script.recordscript
+      - sensor.external_ip
 #dev_pi:
 #  name: Pi
 #  entities:
