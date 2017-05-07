@@ -20,6 +20,8 @@ fishtanks:
    entities:
      -  switch.fish_tank_pump
      -  switch.protein_skimmer
+     -  camera.living_room
+     -  camera.truvu
 misc:
    name: Miscellaneous
    entities:

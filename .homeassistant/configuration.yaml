@@ -28,6 +28,26 @@ switch:
        -  host: 192.168.1.204
           name: "Protein skimmer"
 
+#ffmpeg:
+#  ffmpeg_bin: /usr/local/bin/ffmpeg
+
+camera:
+  - platform: rpi_camera
+    name: living room
+#    vertical_flip: 1
+    image_rotation: 180
+    timelapse: 2000
+#    horizontal_flip: 1
+    file_path:  /tmp/image.png
+  - platform: generic
+    still_image_url: http://192.168.1.210/mjpeg/snap.cgi?chn=0/snap.jpg
+    name: truvu
+    username: admin
+    password: !secret cam_password
+    authentication: digest
+#  - platform: ffmpeg
+#    input: rtsp:admin:123456@192.168.1.210/live/ch0
+#    name: reefer 170
 
 http:
   # Uncomment this to add a password (recommended!)
@@ -76,16 +96,16 @@ device_tracker:
     consider_home: 180
 
 automation:
- - alias: Light on when home
+ - alias: Light on when dark
    trigger: 
-    platform: sun
-    event: sunset
-    offset: '-00:20:00'
+     platform: sun
+     event: sunset
+     offset: '-00:20:00'
    condition:
      condition: and
      conditions:
        - condition: state
-         entity_id: 'device_tracker.robtu'
+         entity_id: 'device_tracker.android8ef561f60af42147'
          state: 'home'
    action:
      service: switch.turn_on
@@ -107,7 +127,7 @@ automation 3:
      platform: time
      after: "00:30:00"
    action:
-     -  service: notify.lgtv
+     -  service: notify.lgtv2
         data:
            message: "It is 12:30"
 automation 4:
@@ -129,6 +149,38 @@ automation 4:
      -  service: notify.pushb
         data:
            message: "pumps are off"
+automation 5:
+ - alias: Light on when home
+   trigger: 
+     platform: state
+     entity_id: 'device_tracker.android8ef561f60af42147'
+     to: 'home'
+   condition:
+     condition: sun
+     after: sunset
+     after_offset: '-00:20:00'
+   action:
+     service: switch.turn_on
+     entity_id: switch.wemo_living_room_light
+automation 6:
+ - alias: turn off tv if forgot
+   trigger: 
+     platform: time
+     minutes: 5
+     seconds: 00
+   condition:
+     condition: and
+     conditions:
+       - condition: state
+         entity_id: 'device_tracker.robtu'
+         state: 'not_home'
+       - condition: state
+         entity_id: 'media_player.lgtv'
+         state: 'on'
+   action:
+     -  service: notify.pushb
+        data:
+           message: "tv is still on"
     
 
 #automation 2:
@@ -153,7 +205,7 @@ media_player:
 notify:
   - platform: webostv
     host: 192.168.1.12 
-    name: lgtv
+    name: lgtv2
     filename: webostv.conf
   - name: pushb 
     platform: pushbullet
@@ -183,6 +235,8 @@ shell_command:
    tivo0: /home/homeassistant/.homeassistant/tivoscript/NUM0
    tivoenter: /home/homeassistant/.homeassistant/tivoscript/ENTER
    tivoright: /home/homeassistant/.homeassistant/tivoscript/RIGHT
+   tivoguide: /home/homeassistant/.homeassistant/tivoscript/GUIDE
+   tivolivetv: /home/homeassistant/.homeassistant/tivoscript/LIVETV
    restart_ha: systemctl restart home-assistant@homeassistant
    kodi: kodi &
 
@@ -201,15 +255,7 @@ script:
           data:
             entity_id: media_player.lgtv
             source: "Home Theater"
-#   abcontv:
-#     sequence:
-#       -  service: media_player.select_source
-#       entity_id: lgtv
-#       source: "livetv"
-#       -  service: media_player.play_media
-#       entity_id: lgtv
-#       media_content_type: "channel"
-   cbsontv:
+   abcontv:
      sequence:
        -  service: media_player.turn_on
           data:
@@ -217,7 +263,14 @@ script:
        -  service: media_player.select_source
           data:
             entity_id: media_player.lgtv
-            source: "Set-top Box"
+            source: "livetv"
+       -  service: shell_command.abctv
+   cbsontv:
+     sequence:
+       -  service: media_player.turn_on
+          data:
+             entity_id: media_player.lgtv
+       -  service: media_player.select_source
        -  delay:  00:00:01
        -  service: shell_command.tivo5
        -  service: shell_command.tivoadvance
@@ -247,9 +300,10 @@ script:
           data:
             entity_id: media_player.lgtv
             source: "Set-top Box"
-       -  delay:  00:00:02
        -  service: shell_command.tivo1
+       -  delay:  00:00:01
        -  service: shell_command.tivo4
+       -  delay:  00:00:01
        -  service: shell_command.tivoadvance
        -  service: shell_command.tivo2
        -  service: shell_command.tivoenter
@@ -318,4 +372,13 @@ script:
        -  service: media_player.media_play
           data:
              entity_id: media_player.lgtv
-
+   missedtv:
+     sequence:
+       -  service: notify.lgtv2
+          data:
+             message: "missed phonecall"
+   missedtext:
+     sequence:
+       -  service: notify.lgtv2
+          data:
+             message: "missed text"
