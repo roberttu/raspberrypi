@@ -20,6 +20,10 @@ frontend:
 # Enables configuration UI
 #config:
 
+wemo:
+  static:
+    - 192.168.1.61
+    - 192.168.1.29
 switch:
   -  platform: orvibo
      switches:
@@ -80,6 +84,9 @@ sensor:
     resource: http://ip.jsontest.com
     name: External IP
     value_template: '{{ value_json.ip }}'
+  - platform: time_date
+    display_options:
+      - 'date_time'
 
 # Text to speech
 #tts:
@@ -109,7 +116,7 @@ automation:
          state: 'home'
    action:
      service: switch.turn_on
-     entity_id: switch.wemo_living_room_light
+     entity_id: switch.living_room_light
 automation 2:
  - alias: Auto turnoff
    trigger: 
@@ -117,7 +124,7 @@ automation 2:
      after: "02:30:00"
    action:
      -  service: switch.turn_off
-        entity_id: switch.wemo_living_room_light
+        entity_id: switch.living_room_light
      -  service: media_player.turn_off
         data:
            entity_id: media_player.lgtv
@@ -142,13 +149,24 @@ automation 4:
        - condition: state
          entity_id: 'device_tracker.robtu'
          state: 'not_home'
-       - condition: state
-         entity_id: 'switch.fish_tank_pump'
-         state: 'off'
+       - condition: or
+         conditions:
+           - condition: state
+             entity_id: 'switch.fish_tank_pump'
+             state: 'off'
+           - condition: state
+             entity_id: 'switch.living_room_light'
+             state: 'on'
+           - condition: state
+             entity_id: 'switch.wemo_switch_bedroom'
+             state: 'on'
+#       - condition: state
+#         entity_id: 'switch.fish_tank_pump'
+#         state: 'off'
    action:
      -  service: notify.pushb
         data:
-           message: "pumps are off"
+           message: "pumps are off or lights are on"
 automation 5:
  - alias: Light on when home
    trigger: 
@@ -161,7 +179,7 @@ automation 5:
      after_offset: '-00:20:00'
    action:
      service: switch.turn_on
-     entity_id: switch.wemo_living_room_light
+     entity_id: switch.living_room_light
 automation 6:
  - alias: turn off tv if forgot
    trigger: 
@@ -181,6 +199,15 @@ automation 6:
      -  service: notify.pushb
         data:
            message: "tv is still on"
+automation 7:
+ - alias: late late night notify
+   trigger: 
+     platform: time
+     after: "01:00:00"
+   action:
+     -  service: notify.lgtv2
+        data:
+           message: "It is 1:00"
     
 
 #automation 2:
@@ -194,7 +221,7 @@ automation 6:
 #     offset: '-00:20:00'
 #   action:
 #   - service: switch.turnon
-#   entity_id: switch.wemo_living_room_light
+#   entity_id: switch.living_room_light
 
 media_player: 
   - platform: webostv
@@ -212,11 +239,14 @@ notify:
     api_key: !secret pushapi
 
 shell_command:
-   recordtivo: /home/homeassistant/.homeassistant/tivoscript/RECORD
+#   recordtivo: /home/homeassistant/.homeassistant/tivoscript/RECORD
+   recordtivo: /home/homeassistant/.homeassistant/githubdownload/pylgtv/tivorecord.py
    tivo5: /home/homeassistant/.homeassistant/tivoscript/NUM5
    tivopause: /home/homeassistant/.homeassistant/tivoscript/PAUSE
    tivoplay: /home/homeassistant/.homeassistant/tivoscript/PLAY
    tvpause: /home/homeassistant/.homeassistant/githubdownload/pylgtv/pause.py
+   tvmute: /home/homeassistant/.homeassistant/githubdownload/pylgtv/mute.py
+   tvunmute: /home/homeassistant/.homeassistant/githubdownload/pylgtv/unmute.py
    tvplay: /home/homeassistant/.homeassistant/githubdownload/pylgtv/play.py
    tivoadvance: /home/homeassistant/.homeassistant/tivoscript/ADVANCE
    abctv: /home/homeassistant/.homeassistant/githubdownload/pylgtv/channel.py 1_35_7_1_0_0_0
@@ -245,7 +275,7 @@ script:
      sequence:
        -  service: switch.turn_off
           data:
-            entity_id: switch.wemo_living_room_light
+            entity_id: switch.living_room_light
 #       -  service: switch.turn_off
 #       entity_id: switch.living_room_tank
        -  service: media_player.turn_on
@@ -314,13 +344,13 @@ script:
    recordscript:
      sequence:
        -  service: shell_command.recordtivo
-       -  delay:  00:00:01
-       -  service: shell_command.tivoright
+#       -  delay:  00:00:01
+#       -  service: shell_command.tivoright
    turnoffall:
      sequence:
        -  service: switch.turn_off
           data:
-             entity_id: switch.wemo_living_room_light
+             entity_id: switch.living_room_light
        -  service: media_player.turn_off
           data:
              entity_id: media_player.lgtv

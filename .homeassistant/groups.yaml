@@ -13,7 +13,7 @@ bedroom:
 livingroom:
   name: Living Room
   entities:
-    -  switch.wemo_living_room_light
+    -  switch.living_room_light
     -  media_player.lgtv
 fishtanks:
    name: Fish Tanks
@@ -31,6 +31,7 @@ misc:
       - script.univisionontv
       - script.recordscript
       - sensor.external_ip
+      - sensor.date__time
 #dev_pi:
 #  name: Pi
 #  entities:
