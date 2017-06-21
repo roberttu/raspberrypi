@@ -20,6 +20,7 @@ fishtanks:
    entities:
      -  switch.fish_tank_pump
      -  switch.protein_skimmer
+     -  switch.wemo_insight
      -  camera.living_room
      -  camera.truvu
 misc:
@@ -32,6 +33,7 @@ misc:
       - script.recordscript
       - sensor.external_ip
       - sensor.date__time
+      - sensor.livingroomtemp
 #dev_pi:
 #  name: Pi
 #  entities:

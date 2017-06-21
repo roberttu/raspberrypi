@@ -24,6 +24,7 @@ wemo:
   static:
     - 192.168.1.61
     - 192.168.1.29
+    - 192.168.1.125
 switch:
   -  platform: orvibo
      switches:
@@ -87,6 +88,9 @@ sensor:
   - platform: time_date
     display_options:
       - 'date_time'
+  - platform: onewire
+    names:
+       some_id: livingroomtemp
 
 # Text to speech
 #tts:
@@ -107,7 +111,7 @@ automation:
    trigger: 
      platform: sun
      event: sunset
-     offset: '-00:20:00'
+     offset: '-00:25:00'
    condition:
      condition: and
      conditions:
@@ -176,7 +180,7 @@ automation 5:
    condition:
      condition: sun
      after: sunset
-     after_offset: '-00:20:00'
+     after_offset: '-00:25:00'
    action:
      service: switch.turn_on
      entity_id: switch.living_room_light
@@ -275,9 +279,7 @@ script:
      sequence:
        -  service: switch.turn_off
           data:
-            entity_id: switch.living_room_light
-#       -  service: switch.turn_off
-#       entity_id: switch.living_room_tank
+            entity_id: switch.wemo_insight
        -  service: media_player.turn_on
           data:
              entity_id: media_player.lgtv
@@ -285,6 +287,17 @@ script:
           data:
             entity_id: media_player.lgtv
             source: "Home Theater"
+       -  service: switch.turn_off
+          data:
+            entity_id: switch.living_room_light
+   home_theater_lights:
+     sequence:
+       -  service: switch.turn_off
+          data:
+            entity_id: switch.wemo_insight
+       -  service: switch.turn_off
+          data:
+            entity_id: switch.living_room_light
    abcontv:
      sequence:
        -  service: media_player.turn_on
