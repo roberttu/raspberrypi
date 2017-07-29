@@ -33,7 +33,7 @@ misc:
       - script.recordscript
       - sensor.external_ip
       - sensor.date__time
-      - sensor.livingroomtemp
+      - sensor.28051686b186ff
 #dev_pi:
 #  name: Pi
 #  entities:

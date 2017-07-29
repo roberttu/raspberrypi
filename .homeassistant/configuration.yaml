@@ -1,4 +1,13 @@
 homeassistant:
+  customize:
+     switch.wemo_insight:
+       friendly_name: Fish Tank 2 Light
+     switch.wemo_switch_bedroom:
+       friendly_name: Bedroom Light
+     camera.truvu:
+       friendly_name: Office Tank
+     sensor.28051686b186ff:
+       friendly_name: Room Temp
   # Name of the location where Home Assistant is running
   name: Home
   # Location required to calculate the time the sun rises and sets
@@ -89,8 +98,6 @@ sensor:
     display_options:
       - 'date_time'
   - platform: onewire
-    names:
-       some_id: livingroomtemp
 
 # Text to speech
 #tts:
@@ -212,6 +219,22 @@ automation 7:
      -  service: notify.lgtv2
         data:
            message: "It is 1:00"
+automation 8:
+ - alias: high temperature alert
+   trigger: 
+     platform: time
+     minutes: 30
+     seconds: 00
+   condition:
+     condition: and
+     conditions:
+       - condition: numeric_state
+         entity_id: 'sensor.28051686b186ff'
+         above: '85'
+   action:
+     -  service: notify.pushb
+        data:
+           message: "Apt room temperature very high"
     
 
 #automation 2:
