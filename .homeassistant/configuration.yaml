@@ -1,13 +1,30 @@
 homeassistant:
   customize:
+     switch.pumps:
+       icon: mdi:water-pump
+     switch.refillpump:
+       friendly_name: Office Light
+       icon: mdi:lightbulb
+#       icon: mdi:water-pump
+     switch.fan:
+       icon: mdi:fan
      switch.wemo_insight:
        friendly_name: Fish Tank 2 Light
+       icon: mdi:ceiling-light
      switch.wemo_switch_bedroom:
        friendly_name: Bedroom Light
-     camera.truvu:
-       friendly_name: Office Tank
+       icon: mdi:lightbulb
+     camera.officecam:
+       friendly_name: 47g Tank Camera
      sensor.28051686b186ff:
        friendly_name: Room Temp
+       icon: mdi:thermometer
+     sensor.fishtanktemp:
+       friendly_name: Fish Tank Temp
+       icon: mdi:thermometer
+     switch.living_room_light:
+#       friendly_name: Fish Tank 2 Light
+       icon: mdi:lightbulb
   # Name of the location where Home Assistant is running
   name: Home
   # Location required to calculate the time the sun rises and sets
@@ -41,6 +58,50 @@ switch:
           name: "Fish Tank Pump"
        -  host: 192.168.1.204
           name: "Protein skimmer"
+  - platform: mqtt
+    name: "Skimmer"
+    state_topic: "fishtank/skimmer/state"
+    command_topic: "fishtank/skimmer/command"
+    payload_on: "ON"
+    payload_off: "OFF"
+    optimistic: false
+    qos: 0
+    retain: true
+  - platform: mqtt
+    name: "Fan"
+    state_topic: "fishtank/fan/state"
+    command_topic: "fishtank/fan/command"
+    payload_on: "ON"
+    payload_off: "OFF"
+    optimistic: false
+    qos: 0
+    retain: true
+  - platform: mqtt
+    name: "Pumps"
+    state_topic: "fishtank/pumps/state"
+    command_topic: "fishtank/pumps/command"
+    payload_on: "ON"
+    payload_off: "OFF"
+    optimistic: false
+    qos: 0
+    retain: true
+  - platform: mqtt
+    name: "refillpump"
+    state_topic: "fishtank/refillpump/state"
+    command_topic: "fishtank/refillpump/command"
+    payload_on: "ON"
+    payload_off: "OFF"
+    optimistic: false
+    qos: 0
+    retain: true
+mqtt:
+  broker:  192.168.1.188
+  port: 1883
+  keepalive: 60
+#  client_id: HAmaster
+  
+#mqtt_eventstream:
+#  subscribe_topic: hass_fishtank/#
 
 #ffmpeg:
 #  ffmpeg_bin: /usr/local/bin/ffmpeg
@@ -55,7 +116,7 @@ camera:
     file_path:  /tmp/image.png
   - platform: generic
     still_image_url: http://192.168.1.210/mjpeg/snap.cgi?chn=0/snap.jpg
-    name: truvu
+    name: officecam
     username: admin
     password: !secret cam_password
     authentication: digest
@@ -98,6 +159,15 @@ sensor:
     display_options:
       - 'date_time'
   - platform: onewire
+#  - platform: command_line
+#    name: fishtanktemp
+#    command: "python3 /home/homeassistant/.homeassistant/querytanktemp.py"
+#    unit_of_measurement: "C"
+  - platform: mqtt
+    state_topic: "fishtank/temperature"
+    name: 'fishtanktemp'
+    unit_of_measurement: 'F'
+    value_template: '{{ value_json.temperature }}'
 
 # Text to speech
 #tts:
@@ -230,12 +300,125 @@ automation 8:
      conditions:
        - condition: numeric_state
          entity_id: 'sensor.28051686b186ff'
-         above: '85'
+         above: '90'
    action:
      -  service: notify.pushb
         data:
            message: "Apt room temperature very high"
+automation 9:
+ - alias: tank temperature alert
+   trigger: 
+     platform: time
+     minutes: 30
+     seconds: 00
+   condition:
+     condition: and
+     conditions:
+       - condition: numeric_state
+         entity_id: 'sensor.fishtanktemp'
+         above: '85'
+   action:
+     -  service: notify.pushb
+        data:
+           message: "Fish Tank temperature very high"
     
+automation 10:
+ - alias: tank cold alert
+   trigger: 
+     platform: time
+     minutes: 30
+     seconds: 00
+   condition:
+     condition: and
+     conditions:
+       - condition: numeric_state
+         entity_id: 'sensor.fishtanktemp'
+         below: '75'
+   action:
+     -  service: notify.pushb
+        data:
+           message: "Fish Tank temperature too cold"
+    
+automation 11:
+ - alias: tank fan off
+   trigger: 
+     platform: time
+     minutes: 15
+     seconds: 00
+   condition:
+     condition: and
+     conditions:
+       - condition: numeric_state
+         entity_id: 'sensor.fishtanktemp'
+         below: '80'
+       - condition: state
+         entity_id: 'switch.fan'
+         state: 'on'
+   action:
+     -  service: switch.turn_off
+        entity_id: switch.fan
+automation 12:
+ - alias: tank fan on
+   trigger: 
+     platform: time
+     minutes: 15
+     seconds: 00
+   condition:
+     condition: and
+     conditions:
+       - condition: numeric_state
+         entity_id: 'sensor.fishtanktemp'
+         above: '81'
+       - condition: state
+         entity_id: 'switch.fan'
+         state: 'off'
+   action:
+     -  service: notify.pushb
+        data:
+           message: "Fish Tank temperature very high. Turning on fan"
+     -  service: switch.turn_on
+        entity_id: switch.fan
+    
+automation 13:
+ - alias: protein skimmer on
+   trigger: 
+     platform: time
+     at: '00:30:00'
+   condition:
+     condition: and
+     conditions:
+       - condition: numeric_state
+         entity_id: 'sensor.fishtanktemp'
+         below: '81'
+   action:
+     -  service: switch.turn_on
+        entity_id: switch.skimmer
+automation 14:
+ - alias: protein skimmer off
+   trigger: 
+     platform: time
+     at: '07:30:00'
+   action:
+     -  service: switch.turn_off
+        entity_id: switch.skimmer
+automation 15:
+ - alias: auto refill water
+   trigger: 
+     platform: state
+     entity_id: switch.refillpump
+     to: 'on'
+   action:
+     -  service: script.turn_on
+        entity_id: script.refill_timer
+ - alias: auto refill reset
+   trigger: 
+     platform: state
+     entity_id: switch.refillpump
+     to: 'off'
+   action:
+     -  service: script.turn_off
+        entity_id: script.refill_timer
+  
 
 #automation 2:
 #   trigger:
@@ -296,6 +479,12 @@ shell_command:
    tivolivetv: /home/homeassistant/.homeassistant/tivoscript/LIVETV
    restart_ha: systemctl restart home-assistant@homeassistant
    kodi: kodi &
+#   relay16on: curl -k "http://192.168.1.189/relay16on.php"
+#   relay16off: curl -k "http://192.168.1.189/relay16off.php"
+#   relay20on: curl -k "http://192.168.1.189/relay20on.php"
+#   relay20off: curl -k "http://192.168.1.189/relay20off.php"
+#   relay21on: curl -k "http://192.168.1.189/relay21on.php"
+#   relay21off: curl -k "http://192.168.1.189/relay21off.php"
 
 script:
    home_theater:
@@ -448,3 +637,17 @@ script:
        -  service: notify.lgtv2
           data:
              message: "missed text"
+   refill_timer:
+     alias: "Refill Timer"
+     sequence:
+       -  delay:  '00:{{ states.input_slider.refill_run_time.state | int }}:00'
+       -  service: homeassistant.turn_off
+          data:
+             entity_id: switch.refillpump
+input_slider:
+  refill_run_time:
+    name: Refill Run Time
+    initial: 5
+    min: 1
+    max: 15
+    step: 1

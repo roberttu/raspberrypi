@@ -3,9 +3,12 @@ default_view:
     entities:
       - device_tracker.android8ef561f60af42147
       - group.livingroom
-      - group.fishtanks
+      - group.office
       - group.bedroom
+      - group.fishtank
+      - group.fishtank10g
       - group.misc
+#      - group.fttemp
 bedroom:
   name: Bedroom
   entities:
@@ -14,26 +17,39 @@ livingroom:
   name: Living Room
   entities:
     -  switch.living_room_light
+    - sensor.28051686b186ff
     -  media_player.lgtv
-fishtanks:
-   name: Fish Tanks
+office:
+  name: Office
+  entities:
+    - switch.refillpump
+fishtank:
+   name: Fish Tank 47g
    entities:
      -  switch.fish_tank_pump
      -  switch.protein_skimmer
+     -  camera.officecam
+     - switch.skimmer
+     - switch.pumps
+     - switch.fan
+     - sensor.fishtanktemp
+     - switch.refillpump
+     - input_slider.refill_run_time
+fishtank10g:
+   name: Fish Tank 10g
+   entities:
      -  switch.wemo_insight
      -  camera.living_room
-     -  camera.truvu
 misc:
    name: Miscellaneous
    entities:
       - script.restart
-      - script.cbsontv
-      - script.telemundoontv
-      - script.univisionontv
+#      - script.cbsontv
+#      - script.telemundoontv
+#      - script.univisionontv
       - script.recordscript
       - sensor.external_ip
       - sensor.date__time
-      - sensor.28051686b186ff
 #dev_pi:
 #  name: Pi
 #  entities:
