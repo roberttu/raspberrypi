@@ -7,6 +7,7 @@ default_view:
       - group.bedroom
       - group.fishtank
       - group.fishtank10g
+      - group.environment
       - group.misc
 #      - group.fttemp
 bedroom:
@@ -26,11 +27,12 @@ office:
 fishtank:
    name: Fish Tank 47g
    entities:
-     -  switch.fish_tank_pump
-     -  switch.protein_skimmer
+     -  switch.wemo_insight
+#     -  switch.fish_tank_pump
      -  camera.officecam
      - switch.skimmer
-     - switch.pumps
+     - switch.wavepump
+     - switch.wavepump2
      - switch.fan
      - sensor.fishtanktemp
      - switch.refillpump
@@ -38,16 +40,30 @@ fishtank:
 fishtank10g:
    name: Fish Tank 10g
    entities:
-     -  switch.wemo_insight
+     -  switch.fish_tank_10g_light
      -  camera.living_room
+environment:
+   name: Environment
+   entities:
+      - sensor.28051686b186ff
+      - sensor.dark_sky_summary
+      - sensor.dark_sky_temperature
+      - sensor.dark_sky_humidity
+      - sensor.dark_sky_precip_probability
 misc:
    name: Miscellaneous
    entities:
+      - switch.relay3
+      - switch.relay5
+      - switch.relay6
+      - switch.carver705
       - script.restart
 #      - script.cbsontv
 #      - script.telemundoontv
 #      - script.univisionontv
       - script.recordscript
+      - script.home_theater
+      - script.home_theater_off
       - sensor.external_ip
       - sensor.date__time
 #dev_pi:
