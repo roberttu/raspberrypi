@@ -5,9 +5,12 @@ homeassistant:
      switch.wavepump2:
        icon: mdi:water-pump
      switch.refillpump:
+       friendly_name: Refill Pump
+#       icon: mdi:lightbulb
+       icon: mdi:water-pump
+     switch.relay5:
        friendly_name: Office Light
        icon: mdi:lightbulb
-#       icon: mdi:water-pump
      switch.fan:
        icon: mdi:fan
      switch.wemo_insight:
@@ -55,6 +58,16 @@ frontend:
 
 # Enables configuration UI
 #config:
+
+remote:
+  -  platform: harmony
+     name: living_room
+     host: 192.168.1.110
+     activity: Watch TV
+
+#emulated_hue:
+#  listen_port: 80
+#  host_ip: 192.168.1.188 
 
 wemo:
   static:
@@ -140,6 +153,17 @@ switch:
     optimistic: false
     qos: 0
     retain: true
+#  - platform: template
+#    switches:
+#      bluray:
+#        value_template: "{% if is_state('remote.living_room', 'on') %}on{% else %}off{% endif %}"
+#        turn_on:
+#          service: remote.turn_on
+#          entity_id: remote.living_room 
+#        turn_off:
+#          service: remote.turn_off
+#          entity_id: remote.living_room 
+
 mqtt:
   broker:  192.168.1.188
   port: 1883
@@ -221,6 +245,11 @@ sensor:
       - precip_probability
       - temperature
       - humidity
+#  - platform: template
+#    sensors:
+#      living_room:
+#        value_template: '{{ states.remote.living_room.attributes.current_activity}}' 
+#        friendly_name: 'Living Room'
       
 
 # Text to speech
@@ -247,7 +276,7 @@ automation:
      condition: and
      conditions:
        - condition: state
-         entity_id: 'device_tracker.android8ef561f60af42147'
+         entity_id: 'device_tracker.10f1f2827fbd'
          state: 'home'
    action:
      service: switch.turn_on
@@ -256,7 +285,7 @@ automation 2:
  - alias: Auto turnoff
    trigger: 
      platform: time
-     after: "02:30:00"
+     at: "02:30:00"
    action:
      -  service: switch.turn_off
         entity_id: switch.living_room_light
@@ -267,7 +296,7 @@ automation 3:
  - alias: late night notify
    trigger: 
      platform: time
-     after: "00:30:00"
+     at: "00:30:00"
    action:
      -  service: notify.lgtv2
         data:
@@ -276,18 +305,18 @@ automation 4:
  - alias: pump reminder
    trigger: 
      platform: time
-     minutes: 5
+     minutes: '/15'
      seconds: 00
    condition:
      condition: and
      conditions:
        - condition: state
-         entity_id: 'device_tracker.robtu'
+         entity_id: 'device_tracker.10f1f2827fbd'
          state: 'not_home'
        - condition: or
          conditions:
            - condition: state
-             entity_id: 'switch.insight'
+             entity_id: 'switch.wemo_insight'
              state: 'off'
            - condition: state
              entity_id: 'switch.living_room_light'
@@ -306,7 +335,7 @@ automation 5:
  - alias: Light on when home
    trigger: 
      platform: state
-     entity_id: 'device_tracker.android8ef561f60af42147'
+     entity_id: 'device_tracker.10f1f2827fbd'
      to: 'home'
    condition:
      condition: sun
@@ -319,13 +348,13 @@ automation 6:
  - alias: turn off tv if forgot
    trigger: 
      platform: time
-     minutes: 5
+     minutes: '/11'
      seconds: 00
    condition:
      condition: and
      conditions:
        - condition: state
-         entity_id: 'device_tracker.robtu'
+         entity_id: 'device_tracker.10f1f2827fbd'
          state: 'not_home'
        - condition: state
          entity_id: 'media_player.lgtv'
@@ -338,7 +367,7 @@ automation 7:
  - alias: late late night notify
    trigger: 
      platform: time
-     after: "01:00:00"
+     at: "01:00:00"
    action:
      -  service: notify.lgtv2
         data:
@@ -347,7 +376,7 @@ automation 8:
  - alias: high temperature alert
    trigger: 
      platform: time
-     minutes: 30
+     minutes: '/30'
      seconds: 00
    condition:
      condition: and
@@ -363,7 +392,7 @@ automation 9:
  - alias: tank temperature alert
    trigger: 
      platform: time
-     minutes: 30
+     minutes: '/30'
      seconds: 00
    condition:
      condition: and
@@ -380,7 +409,7 @@ automation 10:
  - alias: tank cold alert
    trigger: 
      platform: time
-     minutes: 30
+     minutes: '/30'
      seconds: 00
    condition:
      condition: and
@@ -397,14 +426,14 @@ automation 11:
  - alias: tank fan off
    trigger: 
      platform: time
-     minutes: 15
+     minutes: '/15'
      seconds: 00
    condition:
      condition: and
      conditions:
        - condition: numeric_state
          entity_id: 'sensor.fishtanktemp'
-         below: '80'
+         below: '79.0'
        - condition: state
          entity_id: 'switch.fan'
          state: 'on'
@@ -415,14 +444,14 @@ automation 12:
  - alias: tank fan on
    trigger: 
      platform: time
-     minutes: 15
+     minutes: '/15'
      seconds: 00
    condition:
      condition: and
      conditions:
        - condition: numeric_state
          entity_id: 'sensor.fishtanktemp'
-         above: '81'
+         above: '79.0'
        - condition: state
          entity_id: 'switch.fan'
          state: 'off'
@@ -476,21 +505,48 @@ automation 15:
 # - alias: wavemaker
 #   trigger: 
 #     platform: time
-#     minutes: 15
+#     minutes: '/15'
+##     minutes: '/{{ states.input_slider.wave_period.state | int }}'
 #     seconds: 00
-#   condition:
-#     condition: and
-#     conditions:
-#       - condition: numeric_state
-#         entity_id: 'sensor.fishtanktemp'
-#         below: '81'
+##   condition:
+##     condition: and
+##     conditions:
+##       - condition: numeric_state
+##         entity_id: 'sensor.fishtanktemp'
+##         below: '81'
 #   action:
-#     -  service: switch.turn_on
-#        entity_id: switch.wavepump
-#     -  delay: {{ (("00:" ~ ((range(6,12) | random) | int) ~ ":" ~ ((range(5,55) | random) | int) }}'
+#     -  service: script.turn_on
+#        entity_id: script.wavepump_timer
+##     -  delay: {{ (("00:" ~ ((range(6,12) | random) | int) ~ ":" ~ ((range(5,55) | random) | int) }}'
+##     -  delay:  '00:{{ states.input_slider.wave_interval.state | int }}:00'
+##     -  service: switch.turn_off
+##        entity_id: switch.wavepump
+# - alias: wavemaker reset
+#   trigger: 
+#     platform: state
+#     entity_id: switch.wavepump
+#     to: 'off'
+#   action:
+#     -  service: script.turn_off
+#        entity_id: script.wavepump_timer
+#automation 17:
+# - alias: wavemaker_off
+#   trigger: 
+#     platform: state
+#     entity_id: switch.wavepump
+#     to: 'on'
+#     for:
+#       minutes: '00:{{ states.input_slider.wave_interval.state | int }}:00'
+##   condition:
+##     condition: and
+##     conditions:
+##       - condition: numeric_state
+##         entity_id: 'sensor.fishtanktemp'
+##         below: '81'
+#   action:
 #     -  service: switch.turn_off
 #        entity_id: switch.wavepump
-  
+#  
 
 #automation 2:
 #   trigger:
@@ -499,7 +555,7 @@ automation 15:
 #     seconds: 00
 #   condition:
 #     platform: sun
-#     after: sunset
+#     at: sunset
 #     offset: '-00:20:00'
 #   action:
 #   - service: switch.turnon
@@ -550,6 +606,7 @@ shell_command:
    tivoguide: /home/homeassistant/.homeassistant/tivoscript/GUIDE
    tivolivetv: /home/homeassistant/.homeassistant/tivoscript/LIVETV
    restart_ha: systemctl restart home-assistant@homeassistant
+   restart_mqtt: /home/homeassistant/.homeassistant/restartmqtt
    kodi: kodi &
 #   relay16on: curl -k "http://192.168.1.189/relay16on.php"
 #   relay16off: curl -k "http://192.168.1.189/relay16off.php"
@@ -564,19 +621,34 @@ script:
        -  service: switch.turn_off
           data:
             entity_id: switch.fish_tank_10g_light
-       -  service: media_player.turn_on
-          data:
-             entity_id: media_player.lgtv
-       -  service: media_player.select_source
-          data:
-            entity_id: media_player.lgtv
-            source: "Home Theater"
-       -  service: switch.turn_off
-          data:
-            entity_id: switch.living_room_light
+       -  service: remote.turn_on
+          data_template:
+            entity_id: remote.living_room
+            activity: 28092949
+#       -  service: media_player.turn_on
+#          data:
+#             entity_id: media_player.lgtv
+#       -  service: media_player.select_source
+#          data:
+#            entity_id: media_player.lgtv
+#            source: "Home Theater"
        -  service: switch.turn_on
           data:
             entity_id: switch.carver705
+       -  delay:  00:00:04
+       -  service: switch.turn_off
+          data:
+            entity_id: switch.living_room_light
+#       -  service: remote.send_command
+#          data_template:
+#            entity_id: remote.living_room
+#            command:  Input7.1
+#            device: 47147548 
+#       -  service: remote.send_command
+#          data_template:
+#            entity_id: remote.living_room
+#            command:  Eject
+#            device: 47147547 
    home_theater_off:
      sequence:
 #       -  service: switch.turn_off
@@ -585,16 +657,33 @@ script:
 #       -  service: media_player.turn_on
 #          data:
 #             entity_id: media_player.lgtv
-       -  service: media_player.select_source
-          data:
-            entity_id: media_player.lgtv
-            source: "live tv"
-       -  service: switch.turn_on
-          data:
-            entity_id: switch.living_room_light
+       -  service: remote.turn_off
+          data_template:
+            entity_id: remote.living_room
+            activity: 28092949
+#       -  service: media_player.select_source
+#          data:
+#            entity_id: media_player.lgtv
+#            source: "live tv"
        -  service: switch.turn_off
           data:
             entity_id: switch.carver705
+       -  condition: sun
+          after: sunset
+          after_offset: '-00:25:00'
+       -  service: switch.turn_on
+          data:
+            entity_id: switch.living_room_light
+#       -  service: remote.send_command
+#          data_template:
+#            entity_id: remote.living_room
+#            command:  PowerToggle
+#            device: 47147548 
+#       -  service: remote.send_command
+#          data_template:
+#            entity_id: remote.living_room
+#            command:  turn_off
+#            device: 47147547 
    home_theater_lights:
      sequence:
        -  service: switch.turn_off
@@ -613,14 +702,31 @@ script:
             entity_id: media_player.lgtv
             source: "livetv"
        -  service: shell_command.abctv
+   restartmqtt:
+     sequence:
+       -  service: shell_command.abctv
+   foxontv:
+     sequence:
+       -  service: media_player.turn_on
+          data:
+             entity_id: media_player.lgtv
+       -  service: media_player.select_source
+          data:
+            entity_id: media_player.lgtv
+            source: "livetv"
+       -  service: shell_command.foxtv
    cbsontv:
      sequence:
        -  service: media_player.turn_on
           data:
              entity_id: media_player.lgtv
        -  service: media_player.select_source
+          data:
+            entity_id: media_player.lgtv
+            source: "Set-top Box"
        -  delay:  00:00:01
        -  service: shell_command.tivo5
+       -  delay:  00:00:01
        -  service: shell_command.tivoadvance
        -  service: shell_command.tivo1
        -  service: shell_command.tivoenter
@@ -713,6 +819,13 @@ script:
        -  service: media_player.media_pause
           data:
              entity_id: media_player.lgtv
+       -  condition: template
+          value_template:  '{{ states.remote.living_room.attributes.current_activity=="Watch a Movie" }}'
+       -  service: remote.send_command
+          data_template:
+            entity_id: remote.living_room
+            command:  Pause
+            device: 47147547 
    playontv:
      sequence:
        -  service: shell_command.tivoplay
@@ -720,6 +833,56 @@ script:
        -  service: media_player.media_play
           data:
              entity_id: media_player.lgtv
+       -  condition: template
+          value_template:  '{{ states.remote.living_room.attributes.current_activity=="Watch a Movie" }}'
+       -  service: remote.send_command
+          data_template:
+            entity_id: remote.living_room
+            command:  Play
+            device: 47147547 
+   raisevol:
+     sequence:
+       -  service: remote.send_command
+          data_template:
+            entity_id: remote.living_room
+            command:  VolumeUp
+            num_repeats: 8        
+            delay_secs: 001        
+            device: 47147550 
+       -  condition: template
+          value_template:  '{{ states.remote.living_room.attributes.current_activity=="Watch a Movie" }}'
+       -  service: remote.send_command
+          data_template:
+            entity_id: remote.living_room
+            command:  VolumeUp
+            device: 47147548 
+            num_repeats: 3        
+            delay_secs: 001        
+   lowervol:
+     sequence:
+       -  service: remote.send_command
+          data_template:
+            entity_id: remote.living_room
+            command:  VolumeDown
+            num_repeats: 8        
+            delay_secs: 001        
+            device: 47147550 
+       -  condition: template
+          value_template:  '{{ states.remote.living_room.attributes.current_activity=="Watch a Movie" }}'
+       -  service: remote.send_command
+          data_template:
+            entity_id: remote.living_room
+            command:  VolumeDown
+            num_repeats: 3        
+            delay_secs: 001        
+            device: 47147548 
+   eject:
+     sequence:
+       -  service: remote.send_command
+          data_template:
+            entity_id: remote.living_room
+            command:  Eject
+            device: 47147547 
    missedtv:
      sequence:
        -  service: notify.lgtv2
@@ -737,10 +900,29 @@ script:
        -  service: homeassistant.turn_off
           data:
              entity_id: switch.refillpump
+#   wavepump_timer:
+#     alias: "Wave Timer"
+#     sequence:
+#       -  delay:  '00:{{ states.input_slider.wave_interval.state | int }}:00'
+#       -  service: homeassistant.turn_off
+#          data:
+#             entity_id: switch.wavepump
 input_slider:
   refill_run_time:
     name: Refill Run Time
     initial: 5
     min: 1
+    max: 15
+    step: 1
+  wave_interval:
+    name: WaveMaker Time
+    initial: 13
+    min: 1
+    max: 15
+    step: 1
+  wave_period:
+    name: WaveMaker Period
+    initial: 15
+    min: 2
     max: 15
     step: 1

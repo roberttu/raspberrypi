@@ -1,7 +1,7 @@
 default_view:
     view: yes
     entities:
-      - device_tracker.android8ef561f60af42147
+      - device_tracker.10f1f2827fbd
       - group.livingroom
       - group.office
       - group.bedroom
@@ -20,10 +20,18 @@ livingroom:
     -  switch.living_room_light
     - sensor.28051686b186ff
     -  media_player.lgtv
+    - switch.carver705
+    - script.recordscript
+    - script.home_theater
+    - script.home_theater_off
+    - script.home_theater_lights
+    - script.eject
+    - script.lowervol
+    - script.raisevol
 office:
   name: Office
   entities:
-    - switch.refillpump
+    - switch.relay5
 fishtank:
    name: Fish Tank 47g
    entities:
@@ -31,6 +39,8 @@ fishtank:
 #     -  switch.fish_tank_pump
      -  camera.officecam
      - switch.skimmer
+#     - input_slider.wave_interval
+#     - input_slider.wave_period
      - switch.wavepump
      - switch.wavepump2
      - switch.fan
@@ -54,16 +64,13 @@ misc:
    name: Miscellaneous
    entities:
       - switch.relay3
-      - switch.relay5
+#      - switch.relay5
       - switch.relay6
-      - switch.carver705
       - script.restart
+      - script.restartmqtt
 #      - script.cbsontv
 #      - script.telemundoontv
 #      - script.univisionontv
-      - script.recordscript
-      - script.home_theater
-      - script.home_theater_off
       - sensor.external_ip
       - sensor.date__time
 #dev_pi:

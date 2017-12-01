@@ -1,0 +1,5 @@
+
+ssh -t pi@192.168.1.189 "sudo systemctl status mqttrelay.service"
+ssh -t pi@192.168.1.189 "sudo systemctl restart mqttrelay"
+ssh -t pi@192.168.1.189 "sudo systemctl status mqttrelay.service"
+
