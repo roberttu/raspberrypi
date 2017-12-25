@@ -41,8 +41,8 @@ homeassistant:
   # Name of the location where Home Assistant is running
   name: Home
   # Location required to calculate the time the sun rises and sets
-  latitude: 37.3537
-  longitude: -122.0307
+  latitude: 37.374393
+  longitude: -122.049449
   # Impacts weather/sunrise data (altitude above sea level in meters)
   elevation: 48
   # metric for Metric, imperial for Imperial
@@ -77,7 +77,7 @@ wemo:
 switch:
   -  platform: orvibo
      switches:
-       -  host: 192.168.1.198
+       -  host: 192.168.1.180
           name: "Carver705"
        -  host: 192.168.1.204
           name: "Fish Tank 10g light"
@@ -259,12 +259,14 @@ sensor:
 group: !include groups.yaml
 
 device_tracker:
-  - platform: asuswrt
-    host: 192.168.1.1
-    username: admin
-    password: !secret asusrt_password
-    protocol: telnet
-    consider_home: 180
+  - platform: owntracks
+    max_gps_accuracy: 200
+#  - platform: asuswrt
+#    host: 192.168.1.1
+#    username: admin
+#    password: !secret asusrt_password
+#    protocol: telnet
+#    consider_home: 180
 
 automation:
  - alias: Light on when dark
@@ -581,6 +583,7 @@ shell_command:
    recordtivo: /home/homeassistant/.homeassistant/githubdownload/pylgtv/tivorecord.py
    tivo5: /home/homeassistant/.homeassistant/tivoscript/NUM5
    tivopause: /home/homeassistant/.homeassistant/tivoscript/PAUSE
+   tivoselect: /home/homeassistant/.homeassistant/tivoscript/SELECT
    tivoplay: /home/homeassistant/.homeassistant/tivoscript/PLAY
    tvpause: /home/homeassistant/.homeassistant/githubdownload/pylgtv/pause.py
    tvmute: /home/homeassistant/.homeassistant/githubdownload/pylgtv/mute.py
@@ -607,6 +610,7 @@ shell_command:
    tivolivetv: /home/homeassistant/.homeassistant/tivoscript/LIVETV
    restart_ha: systemctl restart home-assistant@homeassistant
    restart_mqtt: /home/homeassistant/.homeassistant/restartmqtt
+   restart_vpn: /home/homeassistant/.homeassistant/restartvpn
    kodi: kodi &
 #   relay16on: curl -k "http://192.168.1.189/relay16on.php"
 #   relay16off: curl -k "http://192.168.1.189/relay16off.php"
@@ -704,7 +708,10 @@ script:
        -  service: shell_command.abctv
    restartmqtt:
      sequence:
-       -  service: shell_command.abctv
+       -  service: shell_command.restartmqtt
+   restartvpn:
+     sequence:
+       -  service: shell_command.restartvpn
    foxontv:
      sequence:
        -  service: media_player.turn_on
@@ -825,6 +832,19 @@ script:
           data_template:
             entity_id: remote.living_room
             command:  Pause
+            device: 47147547 
+   selectontv:
+     sequence:
+       -  service: shell_command.tivoselect
+#       -  service: media_player.media_pause
+#          data:
+#             entity_id: media_player.lgtv
+       -  condition: template
+          value_template:  '{{ states.remote.living_room.attributes.current_activity=="Watch a Movie" }}'
+       -  service: remote.send_command
+          data_template:
+            entity_id: remote.living_room
+            command:  Select
             device: 47147547 
    playontv:
      sequence:

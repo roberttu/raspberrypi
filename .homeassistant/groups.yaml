@@ -1,7 +1,8 @@
 default_view:
     view: yes
     entities:
-      - device_tracker.10f1f2827fbd
+#      - device_tracker.10f1f2827fbd
+      - device_tracker.ha_taimen
       - group.livingroom
       - group.office
       - group.bedroom
@@ -68,6 +69,7 @@ misc:
       - switch.relay6
       - script.restart
       - script.restartmqtt
+      - script.restartvpn
 #      - script.cbsontv
 #      - script.telemundoontv
 #      - script.univisionontv
