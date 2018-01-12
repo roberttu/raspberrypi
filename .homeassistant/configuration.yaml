@@ -79,7 +79,7 @@ switch:
      switches:
        -  host: 192.168.1.180
           name: "Carver705"
-       -  host: 192.168.1.204
+       -  host: 192.168.1.105
           name: "Fish Tank 10g light"
   - platform: mqtt
     name: "Skimmer"
@@ -259,8 +259,12 @@ sensor:
 group: !include groups.yaml
 
 device_tracker:
-  - platform: owntracks
-    max_gps_accuracy: 200
+  - platform: nmap_tracker
+    hosts: 192.168.1.28
+    home_interval: 10
+#device_tracker:
+#  - platform: owntracks
+#    max_gps_accuracy: 200
 #  - platform: asuswrt
 #    host: 192.168.1.1
 #    username: admin
@@ -829,10 +833,12 @@ script:
        -  condition: template
           value_template:  '{{ states.remote.living_room.attributes.current_activity=="Watch a Movie" }}'
        -  service: remote.send_command
-          data_template:
+          data:
             entity_id: remote.living_room
-            command:  Pause
+            command: 
+              - Pause
             device: 47147547 
+            delay_secs: 0.6
    selectontv:
      sequence:
        -  service: shell_command.tivoselect
@@ -842,10 +848,23 @@ script:
        -  condition: template
           value_template:  '{{ states.remote.living_room.attributes.current_activity=="Watch a Movie" }}'
        -  service: remote.send_command
-          data_template:
+          data:
             entity_id: remote.living_room
-            command:  Select
+            command: 
+              - Select
             device: 47147547 
+            delay_secs: 0.6
+   ejectontv:
+     sequence:
+       -  condition: template
+          value_template:  '{{ states.remote.living_room.attributes.current_activity=="Watch a Movie" }}'
+       -  service: remote.send_command
+          data:
+            entity_id: remote.living_room
+            command: 
+              - Eject
+            device: 47147547 
+            delay_secs: 0.6
    playontv:
      sequence:
        -  service: shell_command.tivoplay
@@ -856,10 +875,12 @@ script:
        -  condition: template
           value_template:  '{{ states.remote.living_room.attributes.current_activity=="Watch a Movie" }}'
        -  service: remote.send_command
-          data_template:
+          data:
             entity_id: remote.living_room
-            command:  Play
+            command: 
+              - Play
             device: 47147547 
+            delay_secs: 0.6
    raisevol:
      sequence:
        -  service: remote.send_command
@@ -899,10 +920,12 @@ script:
    eject:
      sequence:
        -  service: remote.send_command
-          data_template:
+          data:
             entity_id: remote.living_room
-            command:  Eject
+            command: 
+              - Eject
             device: 47147547 
+            delay_secs: 0.6
    missedtv:
      sequence:
        -  service: notify.lgtv2

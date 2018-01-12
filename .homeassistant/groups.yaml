@@ -1,8 +1,8 @@
 default_view:
     view: yes
     entities:
-#      - device_tracker.10f1f2827fbd
-      - device_tracker.ha_taimen
+      - device_tracker.10f1f2827fbd
+#      - device_tracker.ha_taimen
       - group.livingroom
       - group.office
       - group.bedroom
@@ -23,6 +23,8 @@ livingroom:
     -  media_player.lgtv
     - switch.carver705
     - script.recordscript
+    - script.selectontv
+    - script.ejectontv
     - script.home_theater
     - script.home_theater_off
     - script.home_theater_lights
