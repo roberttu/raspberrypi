@@ -253,8 +253,9 @@ sensor:
       
 
 # Text to speech
-#tts:
-#  platform: google
+tts:
+  -  platform: google
+     language: 'en'
 
 group: !include groups.yaml
 
@@ -262,6 +263,7 @@ device_tracker:
   - platform: nmap_tracker
     hosts: 192.168.1.28
     home_interval: 10
+    consider_home: 180
 #device_tracker:
 #  - platform: owntracks
 #    max_gps_accuracy: 200
@@ -285,8 +287,13 @@ automation:
          entity_id: 'device_tracker.10f1f2827fbd'
          state: 'home'
    action:
-     service: switch.turn_on
-     entity_id: switch.living_room_light
+     -  service: switch.turn_on
+        entity_id: switch.living_room_light
+     -  service: tts.google_say
+        entity_id: media_player.bedroom_speaker, media_player.living_room_home,media_player.office_speaker
+        data_template:
+          message: "Welcome home Rob"
+          cache: false
 automation 2:
  - alias: Auto turnoff
    trigger: 
@@ -307,6 +314,10 @@ automation 3:
      -  service: notify.lgtv2
         data:
            message: "It is 12:30"
+     -  service: tts.google_say
+        entity_id: media_player.bedroom_speaker, media_player.living_room_home,media_player.office_speaker
+        data:
+           message: "It is 12:30"
 automation 4:
  - alias: pump reminder
    trigger: 
@@ -321,9 +332,6 @@ automation 4:
          state: 'not_home'
        - condition: or
          conditions:
-           - condition: state
-             entity_id: 'switch.wemo_insight'
-             state: 'off'
            - condition: state
              entity_id: 'switch.living_room_light'
              state: 'on'
@@ -410,6 +418,10 @@ automation 9:
      -  service: notify.pushb
         data:
            message: "Fish Tank temperature very high"
+     -  service: tts.google_say
+        entity_id: media_player.bedroom_speaker, media_player.living_room_home,media_player.office_speaker
+        data:
+           message: "Fish Tank temperature very high"
     
 automation 10:
  - alias: tank cold alert
@@ -425,6 +437,10 @@ automation 10:
          below: '75'
    action:
      -  service: notify.pushb
+        data:
+           message: "Fish Tank temperature too cold"
+     -  service: tts.google_say
+        entity_id: media_player.bedroom_speaker, media_player.living_room_home,media_player.office_speaker
         data:
            message: "Fish Tank temperature too cold"
     
@@ -467,6 +483,10 @@ automation 12:
            message: "Fish Tank temperature very high. Turning on fan"
      -  service: switch.turn_on
         entity_id: switch.fan
+     -  service: tts.google_say
+        entity_id: media_player.bedroom_speaker, media_player.living_room_home,media_player.office_speaker
+        data:
+           message: "Fish Tank temperature very high. Turning on fan"
     
 automation 13:
  - alias: protein skimmer on
@@ -507,6 +527,43 @@ automation 15:
    action:
      -  service: script.turn_off
         entity_id: script.refill_timer
+automation 16:
+ - alias: bootstuff
+   trigger: 
+     platform: homeassistant
+     event: start
+   action:
+     -  service: tts.google_say
+        entity_id: media_player.bedroom_speaker, media_player.living_room_home,media_player.office_speaker
+#        entity_id: media_player.living_room_home
+        data:
+          message: "Booting home assistant"
+     -  service: notify.lgtv2
+        data:
+           message: "Booting home assistant"
+     -  service: script.restartmqtt
+automation 17:
+ - alias: pump47 reminder
+   trigger: 
+     platform: time
+     minutes: '/15'
+     seconds: 00
+   condition:
+     - condition: state
+       entity_id: 'switch.wemo_insight'
+       state: 'off'
+   action:
+     -  service: notify.pushb
+        data:
+           message: "pumps are off"
+     -  service: tts.google_say
+        entity_id: media_player.bedroom_speaker, media_player.living_room_home,media_player.office_speaker
+        data_template:
+          message: "pumps are off"
+          cache: false
+     -  service: notify.lgtv2
+        data_template:
+          message: "pumps are off"
 #automation 16:
 # - alias: wavemaker
 #   trigger: 
@@ -573,6 +630,18 @@ media_player:
     mac: C8:08:E9:ED:DD:AF
     name: lgtv
     filename: webostv.conf
+  - platform: cast
+    host: 192.168.1.10 
+    mac: 
+    name: living_room_home
+  - platform: cast
+    host: 192.168.1.146 
+    mac: 
+    name: bedroom_speaker
+  - platform: cast
+    host: 192.168.1.123 
+    mac: 
+    name: office_speaker
 notify:
   - platform: webostv
     host: 192.168.1.12 
@@ -712,7 +781,27 @@ script:
        -  service: shell_command.abctv
    restartmqtt:
      sequence:
-       -  service: shell_command.restartmqtt
+       -  service: shell_command.restart_mqtt
+   sayroomtemp:
+     sequence:
+       -  service: tts.google_say
+          entity_id: media_player.bedroom_speaker, media_player.living_room_home,media_player.office_speaker
+          data_template:
+            message: "room temperature is currently {{states('sensor.28051686b186ff')}} degrees."
+            cache: false
+       -  service: notify.lgtv2
+          data_template:
+            message: "room temperature is currently {{states('sensor.28051686b186ff')}} degrees."
+   sayfishtanktemp:
+     sequence:
+       -  service: tts.google_say
+          entity_id: media_player.bedroom_speaker, media_player.living_room_home,media_player.office_speaker
+          data_template:
+            message: "fish tank temperature is currently {{states('sensor.fishtanktemp')}} degrees."
+            cache: false
+       -  service: notify.lgtv2
+          data_template:
+            message: "fish tank temperature is currently {{states('sensor.fishtanktemp')}} degrees."
    restartvpn:
      sequence:
        -  service: shell_command.restartvpn
@@ -774,6 +863,13 @@ script:
        -  service: shell_command.tivoenter
    restart:
      sequence:
+       -  service: tts.google_say
+          entity_id: media_player.bedroom_speaker, media_player.living_room_home,media_player.office_speaker
+          data:
+            message: "Booting home assistant"
+       -  service: notify.lgtv2
+          data:
+             message: "Booting home assistant"
        -  service: homeassistant.restart
 #       -  service: shell_command.restart_ha
    recordscript:
@@ -789,6 +885,14 @@ script:
        -  service: media_player.turn_off
           data:
              entity_id: media_player.lgtv
+       -  condition: time
+          after: '00:00:00'
+          before: '03:00:00'
+       -  service: tts.google_say
+          entity_id: media_player.bedroom_speaker, media_player.living_room_home,media_player.office_speaker
+          data_template:
+            message: "Good Night Robert"
+            cache: false
    turnofftv:
      sequence:
        -  service: media_player.turn_off
