@@ -72,6 +72,7 @@ misc:
       - script.restart
       - script.restartmqtt
       - script.restartvpn
+      - script.sayroomtemp
 #      - script.cbsontv
 #      - script.telemundoontv
 #      - script.univisionontv

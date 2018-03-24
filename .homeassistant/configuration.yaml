@@ -289,11 +289,6 @@ automation:
    action:
      -  service: switch.turn_on
         entity_id: switch.living_room_light
-     -  service: tts.google_say
-        entity_id: media_player.bedroom_speaker, media_player.living_room_home,media_player.office_speaker
-        data_template:
-          message: "Welcome home Rob"
-          cache: false
 automation 2:
  - alias: Auto turnoff
    trigger: 
@@ -560,10 +555,20 @@ automation 17:
         entity_id: media_player.bedroom_speaker, media_player.living_room_home,media_player.office_speaker
         data_template:
           message: "pumps are off"
-          cache: false
      -  service: notify.lgtv2
         data_template:
           message: "pumps are off"
+automation 18:
+# - alias: say hi when home
+#   trigger: 
+#     platform: state
+#     entity_id: 'device_tracker.10f1f2827fbd'
+#     to: 'home'
+#   action:
+#     -  service: tts.google_say
+#        entity_id: media_player.bedroom_speaker, media_player.living_room_home,media_player.office_speaker
+#        data_template:
+#          message: "Welcome home Rob"
 #automation 16:
 # - alias: wavemaker
 #   trigger: 
@@ -664,10 +669,12 @@ shell_command:
    tvplay: /home/homeassistant/.homeassistant/githubdownload/pylgtv/play.py
    tivoadvance: /home/homeassistant/.homeassistant/tivoscript/ADVANCE
    abctv: /home/homeassistant/.homeassistant/githubdownload/pylgtv/channel.py 1_35_7_1_0_0_0
+   nbctv: /home/homeassistant/.homeassistant/githubdownload/pylgtv/channel.py 1_49_11_3_0_0_0
    foxtv: /home/homeassistant/.homeassistant/githubdownload/pylgtv/channel.py 1_48_2_1_0_0_0
-   changevolhi: /home/homeassistant/.homeassistant/githubdownload/pylgtv/volume.py 30
-   changevolmed: /home/homeassistant/.homeassistant/githubdownload/pylgtv/volume.py 17
-   changevollo: /home/homeassistant/.homeassistant/githubdownload/pylgtv/volume.py 12
+   changevolhi: /home/homeassistant/.homeassistant/githubdownload/pylgtv/volumeset.py 30
+   changevolzero: /home/homeassistant/.homeassistant/githubdownload/pylgtv/volumeset.py 0
+   changevolmed: /home/homeassistant/.homeassistant/githubdownload/pylgtv/volumeset.py 17
+   changevollo: /home/homeassistant/.homeassistant/githubdownload/pylgtv/volumeset.py 12
    tivo1: /home/homeassistant/.homeassistant/tivoscript/NUM1
    tivo4: /home/homeassistant/.homeassistant/tivoscript/NUM4
    tivo2: /home/homeassistant/.homeassistant/tivoscript/NUM2
@@ -693,11 +700,19 @@ shell_command:
 #   relay21off: curl -k "http://192.168.1.189/relay21off.php"
 
 script:
+   fish_tank_light_off:
+     sequence:
+       -  service: switch.turn_off
+          data:
+            entity_id: switch.fish_tank_10g_light
    home_theater:
      sequence:
        -  service: switch.turn_off
           data:
             entity_id: switch.fish_tank_10g_light
+       -  service: notify.lgtv2
+          data:
+             message: "starting home theater"
        -  service: remote.turn_on
           data_template:
             entity_id: remote.living_room
@@ -779,16 +794,29 @@ script:
             entity_id: media_player.lgtv
             source: "livetv"
        -  service: shell_command.abctv
+   nbcontv:
+     sequence:
+       -  service: media_player.turn_on
+          data:
+             entity_id: media_player.lgtv
+       -  service: media_player.select_source
+          data:
+            entity_id: media_player.lgtv
+            source: "livetv"
+       -  service: shell_command.nbctv
    restartmqtt:
      sequence:
        -  service: shell_command.restart_mqtt
+       -  service: tts.google_say
+          entity_id: media_player.bedroom_speaker, media_player.living_room_home,media_player.office_speaker
+          data_template:
+            message: "restarting m q t t"
    sayroomtemp:
      sequence:
        -  service: tts.google_say
           entity_id: media_player.bedroom_speaker, media_player.living_room_home,media_player.office_speaker
           data_template:
             message: "room temperature is currently {{states('sensor.28051686b186ff')}} degrees."
-            cache: false
        -  service: notify.lgtv2
           data_template:
             message: "room temperature is currently {{states('sensor.28051686b186ff')}} degrees."
@@ -798,13 +826,16 @@ script:
           entity_id: media_player.bedroom_speaker, media_player.living_room_home,media_player.office_speaker
           data_template:
             message: "fish tank temperature is currently {{states('sensor.fishtanktemp')}} degrees."
-            cache: false
        -  service: notify.lgtv2
           data_template:
             message: "fish tank temperature is currently {{states('sensor.fishtanktemp')}} degrees."
    restartvpn:
      sequence:
        -  service: shell_command.restartvpn
+       -  service: tts.google_say
+          entity_id: media_player.bedroom_speaker, media_player.living_room_home,media_player.office_speaker
+          data_template:
+            message: "restarting v p n"
    foxontv:
      sequence:
        -  service: media_player.turn_on
@@ -866,10 +897,10 @@ script:
        -  service: tts.google_say
           entity_id: media_player.bedroom_speaker, media_player.living_room_home,media_player.office_speaker
           data:
-            message: "Booting home assistant"
+            message: "restarting home assistant"
        -  service: notify.lgtv2
           data:
-             message: "Booting home assistant"
+             message: "restarting home assistant"
        -  service: homeassistant.restart
 #       -  service: shell_command.restart_ha
    recordscript:
@@ -892,7 +923,6 @@ script:
           entity_id: media_player.bedroom_speaker, media_player.living_room_home,media_player.office_speaker
           data_template:
             message: "Good Night Robert"
-            cache: false
    turnofftv:
      sequence:
        -  service: media_player.turn_off
@@ -1030,16 +1060,78 @@ script:
               - Eject
             device: 47147547 
             delay_secs: 0.6
-   missedtv:
+   play_stereo:
+     sequence:
+       -  service: switch.turn_off
+          data:
+            entity_id: switch.fish_tank_10g_light
+       -  service: remote.turn_on
+          data_template:
+            entity_id: remote.living_room
+            activity: 31701388
+       -  service: switch.turn_on
+          data:
+            entity_id: switch.carver705
+   stop_stereo:
+     sequence:
+       -  service: remote.turn_off
+          data_template:
+            entity_id: remote.living_room
+            activity: 31701388
+       -  service: switch.turn_off
+          data:
+            entity_id: switch.carver705
+   tv_stereo:
+     sequence:
+       -  service: switch.turn_off
+          data:
+            entity_id: switch.fish_tank_10g_light
+       -  service: notify.lgtv2
+          data:
+             message: "turning on stereo"
+       -  service: remote.turn_on
+          data_template:
+            entity_id: remote.living_room
+            activity: 32528257
+       -  service: shell_command.changevolzero
+       -  service: switch.turn_on
+          data:
+            entity_id: switch.carver705
+   tv_stereo_off:
+     sequence:
+       -  service: notify.lgtv2
+          data:
+             message: "turning off stereo"
+       -  service: switch.turn_off
+          data:
+            entity_id: switch.carver705
+       -  service: shell_command.changevolmed
+       -  service: remote.turn_off
+          data_template:
+            entity_id: remote.living_room
+            activity: 32528257
+   missedcall:
      sequence:
        -  service: notify.lgtv2
           data:
              message: "missed phonecall"
+       -  condition: time
+          after: '08:00:00'
+       -  service: tts.google_say
+          entity_id: media_player.bedroom_speaker, media_player.living_room_home,media_player.office_speaker
+          data_template:
+            message: "Robert, you missed a call"
    missedtext:
      sequence:
        -  service: notify.lgtv2
           data:
-             message: "missed text"
+             message: "There was a new text"
+       -  condition: time
+          after: '08:00:00'
+       -  service: tts.google_say
+          entity_id: media_player.bedroom_speaker, media_player.living_room_home,media_player.office_speaker
+          data_template:
+            message: "Robert, there you received a new text"
    refill_timer:
      alias: "Refill Timer"
      sequence:
