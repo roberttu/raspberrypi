@@ -55,6 +55,9 @@ fishtank10g:
    entities:
      -  switch.fish_tank_10g_light
      -  camera.living_room
+     -  input_boolean.lightwemotorefillpump
+     -  switch.living_room_light
+     -  input_slider.refill_run_time_10g
 environment:
    name: Environment
    entities:
@@ -78,6 +81,7 @@ misc:
 #      - script.univisionontv
       - sensor.external_ip
       - sensor.date__time
+      - sensor.wazetraveltime
 #dev_pi:
 #  name: Pi
 #  entities:

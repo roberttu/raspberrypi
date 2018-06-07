@@ -16,6 +16,9 @@ homeassistant:
      switch.wemo_insight:
        friendly_name: Fish Tank 47g Pumps
        icon: mdi:water-pump
+     input_boolean.lightwemotorefillpump:
+       friendly_name: Refill Pump Connected
+       icon: mdi:water-pump
      switch.wemo_switch_bedroom:
        friendly_name: Bedroom Light
        icon: mdi:lightbulb
@@ -69,6 +72,8 @@ remote:
 #  listen_port: 80
 #  host_ip: 192.168.1.188 
 
+ifttt:
+  key: !secret  ifttt_password
 wemo:
   static:
     - 192.168.1.61
@@ -245,6 +250,11 @@ sensor:
       - precip_probability
       - temperature
       - humidity
+#  - platform: wazetraveltime
+#    name: Work Travel Time
+#    origin: !secret homeaddy
+#    destination: !secret workaddy
+#    region: US
 #  - platform: template
 #    sensors:
 #      living_room:
@@ -286,6 +296,9 @@ automation:
        - condition: state
          entity_id: 'device_tracker.10f1f2827fbd'
          state: 'home'
+       - condition: state
+         entity_id: 'input_boolean.lightwemotorefillpump'
+         state: 'off'
    action:
      -  service: switch.turn_on
         entity_id: switch.living_room_light
@@ -337,9 +350,8 @@ automation 4:
 #         entity_id: 'switch.fish_tank_pump'
 #         state: 'off'
    action:
-     -  service: notify.pushb
-        data:
-           message: "pumps are off or lights are on"
+     -  service: ifttt.trigger
+        data: {"event":"HA_trigger_message","value1":"pumps are off or lights are on"}
 automation 5:
  - alias: Light on when home
    trigger: 
@@ -347,9 +359,14 @@ automation 5:
      entity_id: 'device_tracker.10f1f2827fbd'
      to: 'home'
    condition:
-     condition: sun
-     after: sunset
-     after_offset: '-00:25:00'
+     condition: and
+     conditions:
+       - condition: sun
+         after: sunset
+         after_offset: '-00:25:00'
+       - condition: state
+         entity_id: 'input_boolean.lightwemotorefillpump'
+         state: 'off'
    action:
      service: switch.turn_on
      entity_id: switch.living_room_light
@@ -369,9 +386,8 @@ automation 6:
          entity_id: 'media_player.lgtv'
          state: 'on'
    action:
-     -  service: notify.pushb
-        data:
-           message: "tv is still on"
+     -  service: ifttt.trigger
+        data: {"event":"HA_trigger_message","value1":"tv is still on"}
 automation 7:
  - alias: late late night notify
    trigger: 
@@ -394,9 +410,8 @@ automation 8:
          entity_id: 'sensor.28051686b186ff'
          above: '90'
    action:
-     -  service: notify.pushb
-        data:
-           message: "Apt room temperature very high"
+     -  service: ifttt.trigger
+        data: {"event":"HA_trigger_message","value1":"Apt room temperature very high"}
 automation 9:
  - alias: tank temperature alert
    trigger: 
@@ -410,9 +425,11 @@ automation 9:
          entity_id: 'sensor.fishtanktemp'
          above: '85'
    action:
-     -  service: notify.pushb
-        data:
-           message: "Fish Tank temperature very high"
+#     -  service: notify.pushb
+#        data:
+#           message: "Fish Tank temperature very high"
+     -  service: ifttt.trigger
+        data: {"event":"HA_trigger_message","value1":"Fish Tank temperature very high"}
      -  service: tts.google_say
         entity_id: media_player.bedroom_speaker, media_player.living_room_home,media_player.office_speaker
         data:
@@ -431,9 +448,8 @@ automation 10:
          entity_id: 'sensor.fishtanktemp'
          below: '75'
    action:
-     -  service: notify.pushb
-        data:
-           message: "Fish Tank temperature too cold"
+     -  service: ifttt.trigger
+        data: {"event":"HA_trigger_message","value1":"Fish Tank temperature too cold"}
      -  service: tts.google_say
         entity_id: media_player.bedroom_speaker, media_player.living_room_home,media_player.office_speaker
         data:
@@ -473,9 +489,8 @@ automation 12:
          entity_id: 'switch.fan'
          state: 'off'
    action:
-     -  service: notify.pushb
-        data:
-           message: "Fish Tank temperature very high. Turning on fan"
+     -  service: ifttt.trigger
+        data: {"event":"HA_trigger_message","value1":"Fish Tank temperature very high. Turning on fan"}
      -  service: switch.turn_on
         entity_id: switch.fan
      -  service: tts.google_say
@@ -536,6 +551,8 @@ automation 16:
      -  service: notify.lgtv2
         data:
            message: "Booting home assistant"
+     -  service: ifttt.trigger
+        data: {"event":"HA_trigger_message","value1":"Booting home assistant"}
      -  service: script.restartmqtt
 automation 17:
  - alias: pump47 reminder
@@ -548,9 +565,8 @@ automation 17:
        entity_id: 'switch.wemo_insight'
        state: 'off'
    action:
-     -  service: notify.pushb
-        data:
-           message: "pumps are off"
+     -  service: ifttt.trigger
+        data: {"event":"HA_trigger_message","value1":"pumps are off"}
      -  service: tts.google_say
         entity_id: media_player.bedroom_speaker, media_player.living_room_home,media_player.office_speaker
         data_template:
@@ -559,6 +575,28 @@ automation 17:
         data_template:
           message: "pumps are off"
 automation 18:
+ - alias: auto refill water 10g
+   trigger: 
+     platform: state
+     entity_id: switch.living_room_light
+     to: 'on'
+   condition:
+     - condition: state
+       entity_id: 'input_boolean.lightwemotorefillpump'
+       state: 'on'
+   action:
+     -  service: script.turn_on
+        entity_id: script.refill_timer_10g
+automation 19:
+ - alias: auto refill reset 10g
+   trigger: 
+     platform: state
+     entity_id: switch.living_room_light
+     to: 'off'
+   action:
+     -  service: script.turn_off
+        entity_id: script.refill_timer_10g
+#automation 19:
 # - alias: say hi when home
 #   trigger: 
 #     platform: state
@@ -901,6 +939,8 @@ script:
        -  service: notify.lgtv2
           data:
              message: "restarting home assistant"
+       -  service: ifttt.trigger
+          data: {"event":"HA_trigger_message","value1":"restarting home assistant"}
        -  service: homeassistant.restart
 #       -  service: shell_command.restart_ha
    recordscript:
@@ -1139,6 +1179,13 @@ script:
        -  service: homeassistant.turn_off
           data:
              entity_id: switch.refillpump
+   refill_timer_10g:
+     alias: "Refill Timer 10g"
+     sequence:
+       -  delay:  '00:{{ states.input_slider.refill_run_time_10g.state | int }}:00'
+       -  service: homeassistant.turn_off
+          data:
+             entity_id: switch.living_room_light
 #   wavepump_timer:
 #     alias: "Wave Timer"
 #     sequence:
@@ -1149,6 +1196,12 @@ script:
 input_slider:
   refill_run_time:
     name: Refill Run Time
+    initial: 5
+    min: 1
+    max: 15
+    step: 1
+  refill_run_time_10g:
+    name: Refill Run Time 10g
     initial: 5
     min: 1
     max: 15
@@ -1165,3 +1218,7 @@ input_slider:
     min: 2
     max: 15
     step: 1
+input_boolean:
+   lightwemotorefillpump:
+      name: Use Wemo for water refill instead of light
+      initial: off
