@@ -2,6 +2,7 @@ default_view:
     view: yes
     entities:
       - device_tracker.10f1f2827fbd
+#      - binary_sensor.rob_presence
 #      - device_tracker.ha_taimen
       - group.livingroom
       - group.office
@@ -19,7 +20,7 @@ livingroom:
   name: Living Room
   entities:
     -  switch.living_room_light
-    - sensor.28051686b186ff
+    - sensor.28051686b186ff_temperature
     -  media_player.lgtv
     - switch.carver705
     - script.recordscript
@@ -61,7 +62,7 @@ fishtank10g:
 environment:
    name: Environment
    entities:
-      - sensor.28051686b186ff
+      - sensor.28051686b186ff_temperature
       - sensor.dark_sky_summary
       - sensor.dark_sky_temperature
       - sensor.dark_sky_humidity
@@ -76,12 +77,13 @@ misc:
       - script.restartmqtt
       - script.restartvpn
       - script.sayroomtemp
+      - script.kodiontv
 #      - script.cbsontv
 #      - script.telemundoontv
 #      - script.univisionontv
       - sensor.external_ip
+      - sensor.waze_travel_time
       - sensor.date__time
-      - sensor.wazetraveltime
 #dev_pi:
 #  name: Pi
 #  entities:

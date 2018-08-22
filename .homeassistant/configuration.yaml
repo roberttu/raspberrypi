@@ -1,4 +1,6 @@
 homeassistant:
+  whitelist_external_dirs:
+    - /tmp/
   customize:
      switch.wavepump:
        icon: mdi:water-pump
@@ -24,7 +26,7 @@ homeassistant:
        icon: mdi:lightbulb
      camera.officecam:
        friendly_name: 47g Tank Camera
-     sensor.28051686b186ff:
+     sensor.28051686b186ff_temperature:
        friendly_name: Room Temp
        icon: mdi:thermometer
      sensor.fishtanktemp:
@@ -61,6 +63,25 @@ frontend:
 
 # Enables configuration UI
 #config:
+
+cloud:
+  google_actions:
+    filter:
+      include_entities:
+        - switch.wemo_switch_bedroom
+        - switch.skimmer
+#      include_domains:
+#        - switch
+    entity_config:
+      switch.wemo_switch_bedroom:
+        name: bedroom light
+        aliases:
+          - bedroom switch
+        room: bedroom
+      switch.skimmer:
+        name: skimmer
+        room: office
+config:
 
 remote:
   -  platform: harmony
@@ -225,11 +246,19 @@ sun:
 
 # Weather Prediction
 sensor:
+  - platform: waze_travel_time
+    origin: 428 madera avenue sunnyvale, ca 94086
+    destination: 2600 Great America Way santa clara, ca
+    region: 'US'
   - platform: yr
-  - platform: rest
-    resource: http://ip.jsontest.com
+  - platform: command_line
     name: External IP
-    value_template: '{{ value_json.ip }}'
+    command: "curl ipecho.net/plain"
+    scan_interval: 10000
+#  - platform: rest
+#    resource: http://ip.jsontest.com
+#    name: External IP
+#    value_template: '{{ value_json.ip }}'
   - platform: time_date
     display_options:
       - 'date_time'
@@ -274,7 +303,6 @@ device_tracker:
     hosts: 192.168.1.28
     home_interval: 10
     consider_home: 180
-#device_tracker:
 #  - platform: owntracks
 #    max_gps_accuracy: 200
 #  - platform: asuswrt
@@ -283,6 +311,22 @@ device_tracker:
 #    password: !secret asusrt_password
 #    protocol: telnet
 #    consider_home: 180
+#binary_sensor:
+#  - platform: bayesian
+#    prior: 0.5
+#    name: 'rob presence'
+#    probability_threshold: 0.9
+#    observations:
+#      - entity_id: 'device_tracker.10f1f2827fbd'
+#        prob_given_true: 0.9
+#        prob_given_false: 0.1
+#        platform: 'state'
+#        to_state: 'home'
+#      - entity_id: 'media_player.lgtv'
+#        prob_given_true: 0.9
+#        prob_given_false: 0.1
+#        platform: 'state'
+#        to_state: 'on'
 
 automation:
  - alias: Light on when dark
@@ -296,6 +340,9 @@ automation:
        - condition: state
          entity_id: 'device_tracker.10f1f2827fbd'
          state: 'home'
+#       - condition: state
+#         entity_id: 'binary_sensor.rob_presence'
+#         state: 'on'
        - condition: state
          entity_id: 'input_boolean.lightwemotorefillpump'
          state: 'off'
@@ -338,6 +385,9 @@ automation 4:
        - condition: state
          entity_id: 'device_tracker.10f1f2827fbd'
          state: 'not_home'
+#       - condition: state
+#         entity_id: 'binary_sensor.rob_presence'
+#         state: 'off'
        - condition: or
          conditions:
            - condition: state
@@ -358,6 +408,9 @@ automation 5:
      platform: state
      entity_id: 'device_tracker.10f1f2827fbd'
      to: 'home'
+#     platform: state
+#     entity_id: 'binary_sensor.rob_presence'
+#     to: 'on'
    condition:
      condition: and
      conditions:
@@ -382,6 +435,9 @@ automation 6:
        - condition: state
          entity_id: 'device_tracker.10f1f2827fbd'
          state: 'not_home'
+#       - condition: state
+#         entity_id: 'binary_sensor.rob_presence'
+#         state: 'off'
        - condition: state
          entity_id: 'media_player.lgtv'
          state: 'on'
@@ -407,108 +463,98 @@ automation 8:
      condition: and
      conditions:
        - condition: numeric_state
-         entity_id: 'sensor.28051686b186ff'
+         entity_id: 'sensor.28051686b186ff_temperature'
          above: '90'
    action:
      -  service: ifttt.trigger
         data: {"event":"HA_trigger_message","value1":"Apt room temperature very high"}
-automation 9:
- - alias: tank temperature alert
-   trigger: 
-     platform: time
-     minutes: '/30'
-     seconds: 00
-   condition:
-     condition: and
-     conditions:
-       - condition: numeric_state
-         entity_id: 'sensor.fishtanktemp'
-         above: '85'
-   action:
-#     -  service: notify.pushb
+#automation 9:
+# - alias: tank temperature alert
+#   trigger: 
+#     platform: time
+#     minutes: '/30'
+#     seconds: 00
+#   condition:
+#     condition: and
+#     conditions:
+#       - condition: numeric_state
+#         entity_id: 'sensor.fishtanktemp'
+#         above: '85'
+#   action:
+#     -  service: ifttt.trigger
+#        data: {"event":"HA_trigger_message","value1":"Fish Tank temperature very high"}
+    
+#automation 10:
+# - alias: tank cold alert
+#   trigger: 
+#     platform: time
+#     minutes: '/30'
+#     seconds: 00
+#   condition:
+#     condition: and
+#     conditions:
+#       - condition: numeric_state
+#         entity_id: 'sensor.fishtanktemp'
+#         below: '75'
+#   action:
+#     -  service: ifttt.trigger
+#        data: {"event":"HA_trigger_message","value1":"Fish Tank temperature too cold"}
+    
+#automation 11:
+# - alias: tank fan off
+#   trigger: 
+#     platform: time
+#     minutes: '/15'
+#     seconds: 00
+#   condition:
+#     condition: and
+#     conditions:
+#       - condition: numeric_state
+#         entity_id: 'sensor.fishtanktemp'
+#         below: '79.0'
+#       - condition: state
+#         entity_id: 'switch.fan'
+#         state: 'on'
+#   action:
+#     -  service: switch.turn_off
+#        entity_id: switch.fan
+#automation 12:
+# - alias: tank fan on
+#   trigger: 
+#     platform: time
+#     minutes: '/15'
+#     seconds: 00
+#   condition:
+#     condition: and
+#     conditions:
+#       - condition: numeric_state
+#         entity_id: 'sensor.fishtanktemp'
+#         above: '80.0'
+#       - condition: state
+#         entity_id: 'switch.fan'
+#         state: 'off'
+#   action:
+#     -  service: ifttt.trigger
+#        data: {"event":"HA_trigger_message","value1":"Fish Tank temperature very high. Turning on fan"}
+
+#     -  service: switch.turn_on
+#        entity_id: switch.fan
+#     -  service: tts.google_say
+#        entity_id: media_player.bedroom_speaker, media_player.living_room_home,media_player.office_speaker
 #        data:
-#           message: "Fish Tank temperature very high"
-     -  service: ifttt.trigger
-        data: {"event":"HA_trigger_message","value1":"Fish Tank temperature very high"}
-     -  service: tts.google_say
-        entity_id: media_player.bedroom_speaker, media_player.living_room_home,media_player.office_speaker
-        data:
-           message: "Fish Tank temperature very high"
-    
-automation 10:
- - alias: tank cold alert
-   trigger: 
-     platform: time
-     minutes: '/30'
-     seconds: 00
-   condition:
-     condition: and
-     conditions:
-       - condition: numeric_state
-         entity_id: 'sensor.fishtanktemp'
-         below: '75'
-   action:
-     -  service: ifttt.trigger
-        data: {"event":"HA_trigger_message","value1":"Fish Tank temperature too cold"}
-     -  service: tts.google_say
-        entity_id: media_player.bedroom_speaker, media_player.living_room_home,media_player.office_speaker
-        data:
-           message: "Fish Tank temperature too cold"
-    
-automation 11:
- - alias: tank fan off
-   trigger: 
-     platform: time
-     minutes: '/15'
-     seconds: 00
-   condition:
-     condition: and
-     conditions:
-       - condition: numeric_state
-         entity_id: 'sensor.fishtanktemp'
-         below: '79.0'
-       - condition: state
-         entity_id: 'switch.fan'
-         state: 'on'
-   action:
-     -  service: switch.turn_off
-        entity_id: switch.fan
-automation 12:
- - alias: tank fan on
-   trigger: 
-     platform: time
-     minutes: '/15'
-     seconds: 00
-   condition:
-     condition: and
-     conditions:
-       - condition: numeric_state
-         entity_id: 'sensor.fishtanktemp'
-         above: '79.0'
-       - condition: state
-         entity_id: 'switch.fan'
-         state: 'off'
-   action:
-     -  service: ifttt.trigger
-        data: {"event":"HA_trigger_message","value1":"Fish Tank temperature very high. Turning on fan"}
-     -  service: switch.turn_on
-        entity_id: switch.fan
-     -  service: tts.google_say
-        entity_id: media_player.bedroom_speaker, media_player.living_room_home,media_player.office_speaker
-        data:
-           message: "Fish Tank temperature very high. Turning on fan"
+#           message: "Fish Tank temperature very high. Turning on fan"
     
 automation 13:
  - alias: protein skimmer on
    trigger: 
      platform: time
      at: '00:30:00'
-   condition:
-     condition: and
-     conditions:
-       - condition: numeric_state
-         entity_id: 'sensor.fishtanktemp'
-         below: '81'
+#   condition:
+#     condition: and
+#     conditions:
+#       - condition: numeric_state
+#         entity_id: 'sensor.fishtanktemp'
+#         below: '81'
    action:
      -  service: switch.turn_on
         entity_id: switch.skimmer
@@ -596,6 +642,37 @@ automation 19:
    action:
      -  service: script.turn_off
         entity_id: script.refill_timer_10g
+automation 20:
+ - alias: high traffic alert
+   trigger: 
+     platform: time
+     minutes: '/30'
+     seconds: 00
+   condition:
+     condition: and
+     conditions:
+       - condition: numeric_state
+         entity_id: 'sensor.waze_traveL_time'
+         above: '19'
+       - condition: time
+         after: '08:30:00'
+         before: '10:00:00'
+         weekday:
+           - mon
+           - tue
+           - wed
+           - thu
+           - fri
+   action:
+     -  service: ifttt.trigger
+        data: {"event":"HA_trigger_message","value1":"Traffic Delays to work"}
+     -  service: tts.google_say
+        entity_id: media_player.bedroom_speaker, media_player.living_room_home,media_player.office_speaker
+        data_template:
+          message: "Traffic Delays to work"
+     -  service: notify.lgtv2
+        data_template:
+          message: "Traffic Delays to work"
 #automation 19:
 # - alias: say hi when home
 #   trigger: 
@@ -667,24 +744,32 @@ automation 19:
 #   - service: switch.turnon
 #   entity_id: switch.living_room_light
 
+cast:
+  media_player:
+  - host: 192.168.1.10
+    name: living_room_home
+  - host: 192.168.1.146 
+    name: bedroom_speaker
+  - host: 192.168.1.123 
+    name: office_speaker
 media_player: 
   - platform: webostv
     host: 192.168.1.12 
     mac: C8:08:E9:ED:DD:AF
     name: lgtv
     filename: webostv.conf
-  - platform: cast
-    host: 192.168.1.10 
-    mac: 
-    name: living_room_home
-  - platform: cast
-    host: 192.168.1.146 
-    mac: 
-    name: bedroom_speaker
-  - platform: cast
-    host: 192.168.1.123 
-    mac: 
-    name: office_speaker
+#  - platform: cast
+#    host: 192.168.1.10 
+#    mac: 
+#    name: living_room_home
+#  - platform: cast
+#    host: 192.168.1.146 
+#    mac: 
+#    name: bedroom_speaker
+#  - platform: cast
+#    host: 192.168.1.123 
+#    mac: 
+#    name: office_speaker
 notify:
   - platform: webostv
     host: 192.168.1.12 
@@ -854,10 +939,10 @@ script:
        -  service: tts.google_say
           entity_id: media_player.bedroom_speaker, media_player.living_room_home,media_player.office_speaker
           data_template:
-            message: "room temperature is currently {{states('sensor.28051686b186ff')}} degrees."
+            message: "room temperature is currently {{states('sensor.28051686b186ff_temperature')}} degrees."
        -  service: notify.lgtv2
           data_template:
-            message: "room temperature is currently {{states('sensor.28051686b186ff')}} degrees."
+            message: "room temperature is currently {{states('sensor.28051686b186ff_temperature')}} degrees."
    sayfishtanktemp:
      sequence:
        -  service: tts.google_say
@@ -1175,25 +1260,25 @@ script:
    refill_timer:
      alias: "Refill Timer"
      sequence:
-       -  delay:  '00:{{ states.input_slider.refill_run_time.state | int }}:00'
+       -  delay:  '00:{{ states.input_number.refill_run_time.state | int }}:00'
        -  service: homeassistant.turn_off
           data:
              entity_id: switch.refillpump
    refill_timer_10g:
      alias: "Refill Timer 10g"
      sequence:
-       -  delay:  '00:{{ states.input_slider.refill_run_time_10g.state | int }}:00'
+       -  delay:  '00:{{ states.input_number.refill_run_time_10g.state | int }}:00'
        -  service: homeassistant.turn_off
           data:
              entity_id: switch.living_room_light
 #   wavepump_timer:
 #     alias: "Wave Timer"
 #     sequence:
-#       -  delay:  '00:{{ states.input_slider.wave_interval.state | int }}:00'
+#       -  delay:  '00:{{ states.input_number.wave_interval.state | int }}:00'
 #       -  service: homeassistant.turn_off
 #          data:
 #             entity_id: switch.wavepump
-input_slider:
+input_number:
   refill_run_time:
     name: Refill Run Time
     initial: 5
