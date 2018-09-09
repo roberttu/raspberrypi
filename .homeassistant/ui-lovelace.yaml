@@ -1,0 +1,263 @@
+title: Rob's Home
+# Include external resources
+resources:
+  - url: /local/my-custom-card.js
+    type: js
+  - url: /local/my-webfont.css
+    type: css
+  - url: /local/button-card.js
+    type: module
+
+# Optional background for all views. Check https://developer.mozilla.org/en-US/docs/Web/CSS/background for more examples.
+background: center / cover no-repeat url("/background.png") fixed
+# Exclude entities from "Unused entities" view
+excluded_entities:
+  - weblink.router
+views:
+    # View tab title.
+#  - title: Main
+  - icon: mdi:home-assistant
+    # Optional unique id for direct access /lovelace/${id}
+    id: example
+    # Optional background (overwrites the global background).
+#    background: radial-gradient(crimson, skyblue)
+    background: radial-gradient(black, midnightblue)
+    # Each view can have a different theme applied. Theme should be defined in the frontend.
+    theme: dark-mode
+    # The cards to show on this view.
+    cards:
+
+        # The filter card will filter entities for their state
+#      - type: entity-filter
+#        entities:
+#          - device_tracker.10f1f2827fbd
+#          - binary_sensor.rob_presence
+#        state_filter:
+#          - 'home'
+#        card:
+#          type: glance
+#          title: People that are home
+
+        # The picture entity card will represent an entity with a picture
+      - type: picture-glance
+        title: Living Room
+        entities:
+          - switch.living_room_light
+          - sensor.28051686b186ff_temperature
+          - entity: media_player.lgtv
+            icon: mdi:television-classic
+        camera_image: camera.living_room
+      - type: picture-glance
+        title: Office
+        entities:
+          - switch.relay5
+          - sensor.28051686b186ff_temperature
+        camera_image: camera.officecam
+      - type: glance
+        title: Status
+        column_width: calc(33.3%)
+        show_state: false
+        entities:
+          - entity: binary_sensor.rob_presence
+            name: Rob
+#            icon: mdi:home-circle
+#            color: rgb(28,128,199)
+          - entity: switch.relay3
+            tap_action: toggle
+          - entity: switch.relay6
+            tap_action: toggle
+      - type: glance
+#        title: Status
+        column_width: calc(33.3%)
+        entities:
+          - sensor.external_ip
+          - entity: sensor.waze_travel_time
+            name: Work
+            icon: mdi:traffic-light
+          - sensor.date__time
+      - type: glance
+        title: System
+        show_state: false
+        entities:
+          - entity: script.restart
+            tap_action: call-service
+            service: script.restart
+            name: Restart
+            icon: mdi:restart
+          - entity: script.restartmqtt
+            tap_action: call-service
+            service: script.restartmqtt
+            name: MQTT
+            icon: mdi:restart
+          - entity: script.restartvpn
+            tap_action: call-service
+            name: VPN
+            service: script.restartvpn
+            icon: mdi:restart
+          - entity: binary_sensor.envypc
+            name: EnvyPC
+#            icon_color: "if (state > 0) return 'rgb(251 ,210, 41)'; else return 'rgb(54,95,140)';"
+#           icon: mdi:laptop
+          - entity: sensor.google_wifi_status
+            name: Wifi
+#      - type: weather-forecast
+#        entity: weather.dark_sky
+      - type: glance
+        title: Environment
+        entities:
+          - entity: sensor.28051686b186ff_temperature
+            name: Inside
+          - sensor.dark_sky_summary
+          - entity: sensor.dark_sky_temperature
+            name: Outside
+          - sensor.dark_sky_humidity
+          - entity: sensor.dark_sky_precip_probability
+            name: Rain
+#            icon: mdi: weather-rainy
+#            icon_color: "if (state > 50) return 'rgb(251 ,210, 41)'; else return 'rgb(54,95,140)';"
+
+    # Specify a tab icon if you want the view tab to be an icon.
+  - icon: mdi:fish
+    # Title of the view. Will be used as the tooltip for tab icon
+    title: Fish Tanks
+    # Optional background (overwrites the global background).
+    background: radial-gradient(DarkSlateBlue, midnightblue)
+    # Each view can have a different theme applied. Theme should be defined in the frontend.
+    theme: dark-mode
+    cards:
+        # Entities card will take a list of entities and show their state.
+      - type: glance
+        title: Fish Tank 47g
+        column_width: calc(25%)
+        entities:
+          - entity: switch.wemo_insight
+            name: Pumps
+            tap_action: toggle
+          - entity: switch.skimmer
+            tap_action: toggle
+          - entity: switch.wavepump
+            tap_action: toggle
+            name: Wave1
+          - entity: switch.wavepump2
+            tap_action: toggle
+            name: Wave2
+          - entity: switch.fan
+#            name:
+            tap_action: toggle
+          - entity: sensor.fishtanktemp
+            name: Temp
+          - entity: switch.refillpump
+            tap_action: toggle
+            name: Refill
+          - entity: input_number.refill_run_time
+            name: Time
+            icon: mdi:timer
+      - type: glance
+        title: Fish Tank 10g
+        column_width: calc(25%)
+        entities:
+          -  entity: switch.fish_tank_10g_light
+             tap_action: toggle
+             name: Light
+          -  entity: input_boolean.lightwemotorefillpump
+             tap_action: toggle
+             name: Connected?
+          -  entity: switch.living_room_light
+             tap_action: toggle
+             name: Refill
+          -  entity: input_number.refill_run_time_10g
+             name: Time
+             icon: mdi:timer
+  - icon: mdi:theater
+    # Title of the view. Will be used as the tooltip for tab icon
+    title: Home Theater
+    # Optional background (overwrites the global background).
+    background: radial-gradient(black, midnightblue)
+    # Each view can have a different theme applied. Theme should be defined in the frontend.
+    theme: dark-mode
+    theme: night
+    cards:
+      - type: vertical-stack
+        color: auto 
+        cards:
+          - type: horizontal-stack
+            cards:
+              - type: "custom:button-card"
+                color_type: blank-card
+              - type: "custom:button-card"
+                entity: script.home_theater
+                icon: mdi:power
+                name: 
+                color_type: card
+#                style:
+#                  -font-size:12px
+#                  -font-weight:bold
+              - type: "custom:button-card"
+                entity: script.home_theater_off
+                icon: mdi:power-off
+                name: 
+                color_type: card
+              - type: "custom:button-card"
+                color_type: blank-card
+          - type: horizontal-stack
+            cards:
+              - type: "custom:button-card"
+                color_type: blank-card
+              - type: "custom:button-card"
+                entity: script.lowervol
+                icon: mdi:volume-minus
+                action: service
+                name: 
+                color_type: card
+              - type: "custom:button-card"
+                entity: script.raisevol
+                action: service
+                icon: mdi:volume-plus
+                name: 
+                color_type: card
+              - type: "custom:button-card"
+                color_type: blank-card
+          - type: horizontal-stack
+            cards:
+              - type: "custom:button-card"
+                color_type: blank-card
+              - type: "custom:button-card"
+                entity: switch.living_room_light
+                icon: mdi:lightbulb-on-outline
+                color_type: card
+                name: 
+              - type: "custom:button-card"
+                entity: script.home_theater_lights
+                icon: mdi:lightbulb
+                name: 
+                color_type: card
+              - type: "custom:button-card"
+                color_type: blank-card
+          - type: horizontal-stack
+            cards:
+              - type: "custom:button-card"
+                color_type: blank-card
+              - type: "custom:button-card"
+                entity: script.kodiontv
+                color_type: card
+                icon: mdi:power
+                name: Kodi
+              - type: "custom:button-card"
+                color_type: blank-card
+#      - type: entities
+#        # Title of the entities card
+#        title: Example
+#        # The entities here will be shown in the same order as specified.
+#        # Each entry is an entity ID or a map with extra options.
+#        entities:
+#          - light.kitchen
+#          - switch.ac
+#          - entity: light.living_room
+#            # Override the name to use
+#            name: LR Lights
+
+        # The markdown card will render markdown text.
+#      - type: markdown
+#        title: Lovelace
+#        content: >
+#          Welcome to your **Lovelace UI**.
