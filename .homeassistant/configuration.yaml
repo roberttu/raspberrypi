@@ -2,6 +2,12 @@ homeassistant:
   whitelist_external_dirs:
     - /tmp/
   customize:
+     switch.hometheaterpower:
+       icon: mdi:theater
+     switch.googwifi:
+       icon: mdi:google
+     switch.openvpnsw:
+       icon: mdi:access-point
      switch.skimmer:
        icon: mdi:chart-bubble
      binary_sensor.rob_presence: 
@@ -11,13 +17,16 @@ homeassistant:
      sensor.google_wifi_status:
        templates:
          rgb_color: if (state==='Online') return [0,255,0]; else return [68, 115, 158]
+     binary_sensor.openvpn:
+       templates:
+         rgb_color: if (state==='on') return [0,255,0]; else return [68, 115, 158]
      binary_sensor.envypc:
        friendly_name:  Envy PC
        icon: mdi:laptop
-       templates:
-         rgb_color: if (state==='Connected') return [0,255,0]; else return [68, 115, 158]
+#       templates:
+#         rgb_color: if (state==='Connected') return [0,255,0]; else return [68, 115, 158]
 #         icon_color: "if (state > 0) return 'rgb(251 ,210, 41)'; else return 'rgb(54,95,140)';"
-#       value_template: '{% if is_state("binary_sensor.envypc","on") %} Online {% else %} Offline {%- endif %}'
+#       value_template: '{% if is_state("binary_sensor.envypc","Connected") %} Online {% else %} Offline {%- endif %}'
      switch.wavepump:
        icon: mdi:waves
      switch.wavepump2:
@@ -81,26 +90,29 @@ homeassistant:
 # Enables the frontend
 frontend:
 
+recorder:
+  purge_keep_days: 7
+  purge_interval: 2
 # Enables configuration UI
 #config:
 
-cloud:
-  google_actions:
-    filter:
-      include_entities:
-        - switch.wemo_switch_bedroom
-        - switch.skimmer
-#      include_domains:
-#        - switch
-    entity_config:
-      switch.wemo_switch_bedroom:
-        name: bedroom light
-        aliases:
-          - bedroom switch
-        room: bedroom
-      switch.skimmer:
-        name: skimmer
-        room: office
+#cloud:
+#  google_actions:
+#    filter:
+#      include_entities:
+#        - switch.wemo_switch_bedroom
+#        - switch.skimmer
+##      include_domains:
+##        - switch
+#    entity_config:
+#      switch.wemo_switch_bedroom:
+#        name: bedroom light
+#        aliases:
+#          - bedroom switch
+#        room: bedroom
+#      switch.skimmer:
+#        name: skimmer
+#        room: office
 config:
 
 remote:
@@ -109,9 +121,8 @@ remote:
      host: 192.168.1.110
      activity: Watch TV
 
-#emulated_hue:
-#  listen_port: 80
-#  host_ip: 192.168.1.188 
+emulated_hue:
+  host_ip: 192.168.1.188 
 
 ifttt:
   key: !secret  ifttt_password
@@ -128,8 +139,50 @@ input_select:
        - not_home
      initial: not_home
 switch:
-  -  platform: orvibo
-     switches:
+  - platform: template
+    switches:
+       hometheaterpower:
+          value_template: "{{ is_state('remote.living_room','on') }}"
+          turn_on:
+            service: script.home_theater
+          turn_off:
+            service: script.home_theater_off
+       hometheaterlights:
+          value_template: "{{ is_state('switch.living_room_light','on')}}"
+          turn_on:
+            service: switch.turn_on
+            data:
+              entity_id: switch.living_room_light
+          turn_off:
+            service: script.home_theater_lights
+          icon_template: >-
+            {% if is_state('switch.living_room_light','on') %}
+               mdi:lightbulb-on-outline
+            {% else %}
+               mdi:lightbulb
+            {% endif %}
+       googwifi:
+          value_template: "{{ is_state('sensor.google_wifi_status','Online')}}"
+          turn_on:
+          turn_off:
+       openvpnsw:
+          value_template: "{{ is_state('binary_sensor.openvpn','on')}}"
+          turn_on:
+            service: script.restartvpn
+          turn_off:
+       carverswitch:
+          value_template: "{{ is_state('switch.carver705','on')}}"
+          turn_on:
+            service: switch.turn_on
+            data:
+              entity_id: switch.carver705
+          turn_off:
+            service: switch.turn_on
+            data:
+              entity_id: switch.carver705
+  - platform: orvibo
+#    discovery: false
+    switches:
        -  host: 192.168.1.180
           name: "Carver705"
        -  host: 192.168.1.105
@@ -226,8 +279,8 @@ mqtt:
 #mqtt_eventstream:
 #  subscribe_topic: hass_fishtank/#
 
-#ffmpeg:
-#  ffmpeg_bin: /usr/local/bin/ffmpeg
+ffmpeg:
+  ffmpeg_bin: /usr/local/bin/ffmpeg
 
 camera:
   - platform: rpi_camera
@@ -243,13 +296,16 @@ camera:
     username: admin
     password: !secret cam_password
     authentication: digest
+  - platform: ffmpeg
+    input: rtsp_transport tcp -i rtsp://admin:Tennis@192.168.1.216/onvif/profile5/media.smp
+    name: "Samsung Cam1"
 #  - platform: ffmpeg
 #    input: rtsp:admin:123456@192.168.1.210/live/ch0
 #    name: reefer 170
 
 http:
   # Uncomment this to add a password (recommended!)
-  api_password: !secret hass_password
+#  api_password: !secret hass_password
   # Uncomment this if you are using SSL or running in Docker etc
   # base_url: example.duckdns.org:8123
 
@@ -323,10 +379,9 @@ sensor:
 
 # Text to speech
 tts:
-  -  platform: google
-     language: 'en'
+  -  platform: google_translate
 
-group: !include groups.yaml
+#group: !include groups.yaml
 
 device_tracker:
   - platform: nmap_tracker
@@ -342,6 +397,12 @@ device_tracker:
 #    protocol: telnet
 #    consider_home: 180
 binary_sensor:
+  - platform: command_line
+    name: openvpn
+    command: "/bin/systemctl is-active openvpn"
+    payload_on: 'active'
+    payload_off: 'inactive'
+    scan_interval: 10000
   - platform: ping
     host: 192.168.1.21 
     name: envypc
@@ -419,15 +480,15 @@ automation 3:
      -  service: notify.lgtv2
         data:
            message: "It is 12:30"
-     -  service: tts.google_say
-        entity_id: media_player.bedroom_speaker, media_player.living_room_home,media_player.office_speaker
-        data:
-           message: "It is 12:30"
+#     -  service: tts.google_say
+#        entity_id: media_player.bedroom_speaker, media_player.living_room_home,media_player.office_speaker
+#        data:
+#           message: "It is 12:30"
 automation 4:
  - alias: pump reminder
    trigger: 
      platform: time
-     minutes: '/15'
+     minutes: "/15"
      seconds: 00
    condition:
      condition: and
@@ -477,7 +538,7 @@ automation 6:
  - alias: turn off tv if forgot
    trigger: 
      platform: time
-     minutes: '/11'
+     minutes: "/11"
      seconds: 00
    condition:
      condition: and
@@ -503,21 +564,21 @@ automation 7:
      -  service: notify.lgtv2
         data:
            message: "It is 1:00"
-automation 8:
- - alias: high temperature alert
-   trigger: 
-     platform: time
-     minutes: '/30'
-     seconds: 00
-   condition:
-     condition: and
-     conditions:
-       - condition: numeric_state
-         entity_id: 'sensor.28051686b186ff_temperature'
-         above: '90'
-   action:
-     -  service: ifttt.trigger
-        data: {"event":"HA_trigger_message","value1":"Apt room temperature very high"}
+#automation 8:
+# - alias: high temperature alert
+#   trigger: 
+#     platform: time
+#     minutes: '/30'
+#     seconds: 00
+#   condition:
+#     condition: and
+#     conditions:
+#       - condition: numeric_state
+#         entity_id: 'sensor.28051686b186ff_temperature'
+#         above: '90'
+#   action:
+#     -  service: ifttt.trigger
+#        data: {"event":"HA_trigger_message","value1":"Apt room temperature very high"}
 #automation 9:
 # - alias: tank temperature alert
 #   trigger: 
@@ -654,7 +715,7 @@ automation 17:
  - alias: pump47 reminder
    trigger: 
      platform: time
-     minutes: '/15'
+     minutes: "/15"
      seconds: 00
    condition:
      - condition: state
@@ -696,7 +757,7 @@ automation 20:
  - alias: high traffic alert
    trigger: 
      platform: time
-     minutes: '/30'
+     minutes: "/30"
      seconds: 00
    condition:
      condition: and
@@ -805,9 +866,11 @@ cast:
 media_player: 
   - platform: webostv
     host: 192.168.1.12 
-    mac: C8:08:E9:ED:DD:AF
     name: lgtv
     filename: webostv.conf
+    turn_on_action:
+       service: wake_on_lan.send_magic_packet
+       mac: C8:08:E9:ED:DD:AF
 #  - platform: cast
 #    host: 192.168.1.10 
 #    mac: 

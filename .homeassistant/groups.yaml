@@ -1,8 +1,8 @@
 default_view:
     view: yes
     entities:
-      - device_tracker.10f1f2827fbd
-#      - binary_sensor.rob_presence
+#      - device_tracker.10f1f2827fbd
+      - binary_sensor.rob_presence
 #      - device_tracker.ha_taimen
       - group.livingroom
       - group.office
@@ -43,14 +43,14 @@ fishtank:
 #     -  switch.fish_tank_pump
      -  camera.officecam
      - switch.skimmer
-#     - input_slider.wave_interval
-#     - input_slider.wave_period
+#     - input_number.wave_interval
+#     - input_number.wave_period
      - switch.wavepump
      - switch.wavepump2
      - switch.fan
      - sensor.fishtanktemp
      - switch.refillpump
-     - input_slider.refill_run_time
+     - input_number.refill_run_time
 fishtank10g:
    name: Fish Tank 10g
    entities:
@@ -58,7 +58,7 @@ fishtank10g:
      -  camera.living_room
      -  input_boolean.lightwemotorefillpump
      -  switch.living_room_light
-     -  input_slider.refill_run_time_10g
+     -  input_number.refill_run_time_10g
 environment:
    name: Environment
    entities:
@@ -83,7 +83,8 @@ misc:
 #      - script.univisionontv
       - sensor.external_ip
       - sensor.waze_travel_time
-      - sensor.date__time
+#      - sensor.date__time
+      - binary_sensor.envypc
 #dev_pi:
 #  name: Pi
 #  entities:

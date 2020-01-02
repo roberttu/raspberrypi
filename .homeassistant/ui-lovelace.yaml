@@ -46,7 +46,9 @@ views:
           - sensor.28051686b186ff_temperature
           - entity: media_player.lgtv
             icon: mdi:television-classic
+          - switch.hometheaterpower
         camera_image: camera.living_room
+#        camera_image: camera.samsung_cam1
       - type: picture-glance
         title: Office
         entities:
@@ -89,22 +91,28 @@ views:
             service: script.restartmqtt
             name: MQTT
             icon: mdi:restart
-          - entity: script.restartvpn
-            tap_action: call-service
-            name: VPN
-            service: script.restartvpn
-            icon: mdi:restart
+#          - entity: script.restartvpn
+#            tap_action: call-service
+#            name: VPN
+#            service: script.restartvpn
+#            icon: mdi:restart
           - entity: binary_sensor.envypc
             name: EnvyPC
-#            icon_color: "if (state > 0) return 'rgb(251 ,210, 41)'; else return 'rgb(54,95,140)';"
-#           icon: mdi:laptop
-          - entity: sensor.google_wifi_status
+            icon_color: "if (state > 0) return 'rgb(251 ,210, 41)'; else return 'rgb(54,95,140)';"
+            icon: mdi:laptop
+          - entity: switch.googwifi
             name: Wifi
+          - entity: switch.openvpnsw
+            name: OpenVPN
+#            icon_color: "if (state==='on') return 'rgb(251 ,210, 41)'; else return 'rgb(54,95,140)';"
+#          - entity: sensor.google_wifi_status
+#            name: Wifi
 #      - type: weather-forecast
 #        entity: weather.dark_sky
       - type: glance
         title: Environment
         entities:
+          - entity: camera.samsung_cam1
           - entity: sensor.28051686b186ff_temperature
             name: Inside
           - sensor.dark_sky_summary
@@ -174,7 +182,7 @@ views:
     # Optional background (overwrites the global background).
     background: radial-gradient(black, midnightblue)
     # Each view can have a different theme applied. Theme should be defined in the frontend.
-    theme: dark-mode
+#    theme: dark-mode
     theme: night
     cards:
       - type: vertical-stack
@@ -185,18 +193,33 @@ views:
               - type: "custom:button-card"
                 color_type: blank-card
               - type: "custom:button-card"
-                entity: script.home_theater
+#                entity: script.home_theater
+                entity: switch.hometheaterpower
                 icon: mdi:power
                 name: 
+                color_type: card
+                color: rgb(28,128,199)
+              - type: "custom:button-card"
+                entity: switch.hometheaterlights
+#                entity: script.home_theater_lights
+                icon: mdi:lightbulb
+                name: 
+                color: rgb(28,128,199)
+                color_type: card
+              - type: "custom:button-card"
+                entity: switch.carverswitch
+                icon: mdi:amplifier
+                name: 
+                color: rgb(28,128,199)
                 color_type: card
 #                style:
 #                  -font-size:12px
 #                  -font-weight:bold
-              - type: "custom:button-card"
-                entity: script.home_theater_off
-                icon: mdi:power-off
-                name: 
-                color_type: card
+#              - type: "custom:button-card"
+#                entity: script.home_theater_off
+#                icon: mdi:power-off
+#                name: 
+#                color_type: card
               - type: "custom:button-card"
                 color_type: blank-card
           - type: horizontal-stack
@@ -206,12 +229,14 @@ views:
               - type: "custom:button-card"
                 entity: script.lowervol
                 icon: mdi:volume-minus
-                action: service
+                action: call-service
+                service: script.lowervol
                 name: 
                 color_type: card
               - type: "custom:button-card"
                 entity: script.raisevol
-                action: service
+                action: call-service
+                service: script.raisevol
                 icon: mdi:volume-plus
                 name: 
                 color_type: card
@@ -222,13 +247,23 @@ views:
               - type: "custom:button-card"
                 color_type: blank-card
               - type: "custom:button-card"
-                entity: switch.living_room_light
-                icon: mdi:lightbulb-on-outline
-                color_type: card
-                name: 
+                color_type: blank-card
+#              - type: "custom:button-card"
+#                entity: switch.living_room_light
+#                icon: mdi:lightbulb-on-outline
+#                color_type: card
+#                name: 
               - type: "custom:button-card"
-                entity: script.home_theater_lights
-                icon: mdi:lightbulb
+                color_type: blank-card
+          - type: horizontal-stack
+            cards:
+              - type: "custom:button-card"
+                color_type: blank-card
+              - type: "custom:button-card"
+                entity: script.eject
+                icon: mdi:eject
+                action: call-service
+                service: script.eject
                 name: 
                 color_type: card
               - type: "custom:button-card"
