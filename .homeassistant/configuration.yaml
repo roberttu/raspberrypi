@@ -1,4 +1,9 @@
+system_health:
+lovelace:
+   mode: yaml
 homeassistant:
+#  lovelace:
+#    mode: yaml
   whitelist_external_dirs:
     - /tmp/
   customize:
@@ -55,7 +60,7 @@ homeassistant:
        icon: mdi:lightbulb
      camera.officecam:
        friendly_name: 47g Tank Camera
-     sensor.28051686b186ff_temperature:
+     sensor.28_051686b186ff_temperature:
        friendly_name: Room Temp
        icon: mdi:thermometer
      sensor.fishtanktemp:
@@ -181,7 +186,7 @@ switch:
             data:
               entity_id: switch.carver705
   - platform: orvibo
-#    discovery: false
+    discovery: false
     switches:
        -  host: 192.168.1.180
           name: "Carver705"
@@ -480,14 +485,14 @@ automation 3:
      -  service: notify.lgtv2
         data:
            message: "It is 12:30"
-#     -  service: tts.google_say
+#     -  service: tts.google_translate_say
 #        entity_id: media_player.bedroom_speaker, media_player.living_room_home,media_player.office_speaker
 #        data:
 #           message: "It is 12:30"
 automation 4:
  - alias: pump reminder
    trigger: 
-     platform: time
+     platform: time_pattern
      minutes: "/15"
      seconds: 00
    condition:
@@ -537,7 +542,7 @@ automation 5:
 automation 6:
  - alias: turn off tv if forgot
    trigger: 
-     platform: time
+     platform: time_pattern
      minutes: "/11"
      seconds: 00
    condition:
@@ -574,7 +579,7 @@ automation 7:
 #     condition: and
 #     conditions:
 #       - condition: numeric_state
-#         entity_id: 'sensor.28051686b186ff_temperature'
+#         entity_id: 'sensor.28_051686b186ff_temperature'
 #         above: '90'
 #   action:
 #     -  service: ifttt.trigger
@@ -598,7 +603,7 @@ automation 7:
 #automation 10:
 # - alias: tank cold alert
 #   trigger: 
-#     platform: time
+#     platform: time_pattern
 #     minutes: '/30'
 #     seconds: 00
 #   condition:
@@ -614,7 +619,7 @@ automation 7:
 #automation 11:
 # - alias: tank fan off
 #   trigger: 
-#     platform: time
+#     platform: time_pattern
 #     minutes: '/15'
 #     seconds: 00
 #   condition:
@@ -632,7 +637,7 @@ automation 7:
 #automation 12:
 # - alias: tank fan on
 #   trigger: 
-#     platform: time
+#     platform: time_pattern
 #     minutes: '/15'
 #     seconds: 00
 #   condition:
@@ -650,7 +655,7 @@ automation 7:
 
 #     -  service: switch.turn_on
 #        entity_id: switch.fan
-#     -  service: tts.google_say
+#     -  service: tts.google_translate_say
 #        entity_id: media_player.bedroom_speaker, media_player.living_room_home,media_player.office_speaker
 #        data:
 #           message: "Fish Tank temperature very high. Turning on fan"
@@ -700,7 +705,7 @@ automation 16:
      platform: homeassistant
      event: start
    action:
-     -  service: tts.google_say
+     -  service: tts.google_translate_say
         entity_id: media_player.bedroom_speaker, media_player.living_room_home,media_player.office_speaker
 #        entity_id: media_player.living_room_home
         data:
@@ -714,7 +719,7 @@ automation 16:
 automation 17:
  - alias: pump47 reminder
    trigger: 
-     platform: time
+     platform: time_pattern
      minutes: "/15"
      seconds: 00
    condition:
@@ -724,9 +729,9 @@ automation 17:
    action:
      -  service: ifttt.trigger
         data: {"event":"HA_trigger_message","value1":"pumps are off"}
-     -  service: tts.google_say
+     -  service: tts.google_translate_say
         entity_id: media_player.bedroom_speaker, media_player.living_room_home,media_player.office_speaker
-        data_template:
+        data:
           message: "pumps are off"
      -  service: notify.lgtv2
         data_template:
@@ -756,7 +761,7 @@ automation 19:
 automation 20:
  - alias: high traffic alert
    trigger: 
-     platform: time
+     platform: time_pattern
      minutes: "/30"
      seconds: 00
    condition:
@@ -765,7 +770,7 @@ automation 20:
        - condition: numeric_state
          entity_id: 'sensor.waze_traveL_time'
          above: '19'
-       - condition: time
+       - condition: time_pattern
          after: '08:30:00'
          before: '10:00:00'
          weekday:
@@ -777,9 +782,9 @@ automation 20:
    action:
      -  service: ifttt.trigger
         data: {"event":"HA_trigger_message","value1":"Traffic Delays to work"}
-     -  service: tts.google_say
+     -  service: tts.google_translate_say
         entity_id: media_player.bedroom_speaker, media_player.living_room_home,media_player.office_speaker
-        data_template:
+        data:
           message: "Traffic Delays to work"
      -  service: notify.lgtv2
         data_template:
@@ -791,7 +796,7 @@ automation 20:
 #     entity_id: 'device_tracker.10f1f2827fbd'
 #     to: 'home'
 #   action:
-#     -  service: tts.google_say
+#     -  service: tts.google_translate_say
 #        entity_id: media_player.bedroom_speaker, media_player.living_room_home,media_player.office_speaker
 #        data_template:
 #          message: "Welcome home Rob"
@@ -870,7 +875,8 @@ media_player:
     filename: webostv.conf
     turn_on_action:
        service: wake_on_lan.send_magic_packet
-       mac: C8:08:E9:ED:DD:AF
+       data:
+          mac: "C8:08:E9:ED:DD:AF"
 #  - platform: cast
 #    host: 192.168.1.10 
 #    mac: 
@@ -1043,22 +1049,22 @@ script:
    restartmqtt:
      sequence:
        -  service: shell_command.restart_mqtt
-       -  service: tts.google_say
+       -  service: tts.google_translate_say
           entity_id: media_player.bedroom_speaker, media_player.living_room_home,media_player.office_speaker
-          data_template:
+          data:
             message: "restarting m q t t"
    sayroomtemp:
      sequence:
-       -  service: tts.google_say
+       -  service: tts.google_translate_say
           entity_id: media_player.bedroom_speaker, media_player.living_room_home,media_player.office_speaker
           data_template:
-            message: "room temperature is currently {{states('sensor.28051686b186ff_temperature')}} degrees."
+            message: "room temperature is currently {{states('sensor.28_051686b186ff_temperature')}} degrees."
        -  service: notify.lgtv2
           data_template:
-            message: "room temperature is currently {{states('sensor.28051686b186ff_temperature')}} degrees."
+            message: "room temperature is currently {{states('sensor.28_051686b186ff_temperature')}} degrees."
    sayfishtanktemp:
      sequence:
-       -  service: tts.google_say
+       -  service: tts.google_translate_say
           entity_id: media_player.bedroom_speaker, media_player.living_room_home,media_player.office_speaker
           data_template:
             message: "fish tank temperature is currently {{states('sensor.fishtanktemp')}} degrees."
@@ -1068,7 +1074,7 @@ script:
    restartvpn:
      sequence:
        -  service: shell_command.restartvpn
-       -  service: tts.google_say
+       -  service: tts.google_translate_say
           entity_id: media_player.bedroom_speaker, media_player.living_room_home,media_player.office_speaker
           data_template:
             message: "restarting v p n"
@@ -1130,7 +1136,7 @@ script:
        -  service: shell_command.tivoenter
    restart:
      sequence:
-       -  service: tts.google_say
+       -  service: tts.google_translate_say
           entity_id: media_player.bedroom_speaker, media_player.living_room_home,media_player.office_speaker
           data:
             message: "restarting home assistant"
@@ -1157,7 +1163,7 @@ script:
        -  condition: time
           after: '00:00:00'
           before: '03:00:00'
-       -  service: tts.google_say
+       -  service: tts.google_translate_say
           entity_id: media_player.bedroom_speaker, media_player.living_room_home,media_player.office_speaker
           data_template:
             message: "Good Night Robert"
@@ -1355,7 +1361,7 @@ script:
              message: "missed phonecall"
        -  condition: time
           after: '08:00:00'
-       -  service: tts.google_say
+       -  service: tts.google_translate_say
           entity_id: media_player.bedroom_speaker, media_player.living_room_home,media_player.office_speaker
           data_template:
             message: "Robert, you missed a call"
@@ -1366,9 +1372,9 @@ script:
              message: "There was a new text"
        -  condition: time
           after: '08:00:00'
-       -  service: tts.google_say
+       -  service: tts.google_translate_say
           entity_id: media_player.bedroom_speaker, media_player.living_room_home,media_player.office_speaker
-          data_template:
+          data:
             message: "Robert, there you received a new text"
    refill_timer:
      alias: "Refill Timer"
